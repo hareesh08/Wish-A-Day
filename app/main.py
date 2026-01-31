@@ -95,9 +95,9 @@ app = FastAPI(
     description="A wish sharing platform with self-destructing wishes",
     version=__version__,
     lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 # Add CORS middleware

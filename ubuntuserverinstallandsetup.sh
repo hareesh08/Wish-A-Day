@@ -647,14 +647,14 @@ print_completion_info() {
     echo "Access URLs:"
     if [[ "$WISHADAY_DOMAIN" != "localhost" ]] && [[ -f "/etc/letsencrypt/live/$WISHADAY_DOMAIN/fullchain.pem" ]]; then
         echo "  - Public (HTTPS): https://$WISHADAY_DOMAIN"
-        echo "  - API Docs: https://$WISHADAY_DOMAIN/api/docs"
+        echo "  - API Docs: https://$WISHADAY_DOMAIN/docs"
         echo "  - Health Check: https://$WISHADAY_DOMAIN/health"
     else
         echo "  - Local: http://localhost:$WISHADAY_PORT"
         if [[ "$WISHADAY_DOMAIN" != "localhost" ]]; then
             echo "  - Public (HTTP): http://$WISHADAY_DOMAIN"
         fi
-        echo "  - API Docs: http://$WISHADAY_DOMAIN/api/docs"
+        echo "  - API Docs: http://$WISHADAY_DOMAIN/docs"
         echo "  - Health Check: http://$WISHADAY_DOMAIN/health"
     fi
     echo
@@ -754,3 +754,34 @@ main() {
 
 # Run main function
 main "$@"
+    # Configure SSL if enabled and domain is not localhost
+    if [[ "$ENABLE_SSL" == "true" ]]; then
+        configure_ssl
+    fi
+    
+    # Setup log rotation and firewall
+    setup_logrotate
+    setup_firewall
+    
+    # Print completion information
+    print_completion_info
+}
+
+# Run main function
+main "$@"
+    # Configure SSL if enabled and domain is not localhost
+    if [[ "$ENABLE_SSL" == "true" ]]; then
+        configure_ssl
+    fi
+    
+    # Setup log rotation and firewall
+    setup_logrotate
+    setup_firewall
+    
+    # Print completion information
+    print_completion_info
+}
+
+# Run main function
+main "$@"
+
