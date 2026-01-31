@@ -140,35 +140,48 @@ def get_cleanup_summary(db: Session) -> dict:
     grace_period = timedelta(minutes=settings.SOFT_DELETE_GRACE_PERIOD_MINUTES)
     cutoff_time = datetime.utcnow() - grace_period
     
-    # Count soft-deleted wishes
-    result = db.execute(
-        select(Wish).where(
-            Wish.is_deleted == True,
-            Wish.deleted_at != None,
-            Wish.deleted_at < cutoff_time
+    try:
+        # Count soft-deleted wishes ready for deletion
+        result = db.execute(
+            select(Wish).where(
+                Wish.is_deleted == True,
+                Wish.deleted_at != None,
+                Wish.deleted_at < cutoff_time
+            )
         )
-    )
-    expired_count = len(result.scalars().all())
-    
-    # Count soft-deleted wishes still in grace period
-    result = db.execute(
-        select(Wish).where(
-            Wish.is_deleted == True,
-            Wish.deleted_at != None,
-            Wish.deleted_at >= cutoff_time
+        expired_count = len(result.scalars().all())
+        
+        # Count soft-deleted wishes still in grace period
+        result = db.execute(
+            select(Wish).where(
+                Wish.is_deleted == True,
+                Wish.deleted_at != None,
+                Wish.deleted_at >= cutoff_time
+            )
         )
-    )
-    grace_period_count = len(result.scalars().all())
-    
-    # Count total wishes
-    total_wishes = db.query(Wish).count()
-    total_images = db.query(WishImage).count()
-    
-    return {
-        "expired_wishes_ready_for_deletion": expired_count,
-        "wishes_in_grace_period": grace_period_count,
-        "total_wishes": total_wishes,
-        "total_images": total_images,
-        "grace_period_minutes": settings.SOFT_DELETE_GRACE_PERIOD_MINUTES,
-        "cleanup_interval_minutes": settings.CLEANUP_INTERVAL_MINUTES,
-    }
+        grace_period_count = len(result.scalars().all())
+        
+        # Count total wishes
+        total_wishes = db.query(Wish).count()
+        total_images = db.query(WishImage).count()
+        
+        return {
+            "expired_wishes_ready_for_deletion": expired_count,
+            "wishes_in_grace_period": grace_period_count,
+            "total_wishes": total_wishes,
+            "total_images": total_images,
+            "grace_period_minutes": settings.SOFT_DELETE_GRACE_PERIOD_MINUTES,
+            "cleanup_interval_minutes": settings.CLEANUP_INTERVAL_MINUTES,
+        }
+    except Exception as e:
+        # Log the error and return default values
+        logger.error(f"Failed to get cleanup summary: {e}")
+        return {
+            "expired_wishes_ready_for_deletion": 0,
+            "wishes_in_grace_period": 0,
+            "total_wishes": 0,
+            "total_images": 0,
+            "grace_period_minutes": settings.SOFT_DELETE_GRACE_PERIOD_MINUTES,
+            "cleanup_interval_minutes": settings.CLEANUP_INTERVAL_MINUTES,
+            "error": str(e),
+        }

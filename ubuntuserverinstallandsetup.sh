@@ -364,17 +364,9 @@ server {
 
     client_max_body_size 10M;
 
-    # Frontend static files
-    location / {
-        root $APP_DIR/frontend/dist;
-        try_files \$uri \$uri/ /index.html;
-        expires 1d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # API and media
+    # API - proxy to backend (more specific paths first)
     location /api/ {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
+        proxy_pass http://127.0.0.1:$WISHADAY_PORT/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -385,20 +377,28 @@ server {
         proxy_cache_bypass \$http_upgrade;
     }
 
-    location /media/ {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        expires 7d;
-        add_header Cache-Control "public, immutable";
-    }
-
+    # Health check endpoint
     location /health {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
+        proxy_pass http://127.0.0.1:$WISHADAY_PORT/health;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         access_log off;
+    }
+
+    # Media files - serve directly from filesystem for better performance
+    location /media/ {
+        alias $APP_DIR/app/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files \$uri \$uri/ =404;
+    }
+
+    # Frontend static files - catch-all (must be last)
+    location / {
+        root $APP_DIR/frontend/dist;
+        try_files \$uri \$uri/ /index.html;
+        expires 1d;
+        add_header Cache-Control "public, immutable";
     }
 
     # Gzip compression
@@ -493,17 +493,9 @@ server {
 
     client_max_body_size 10M;
 
-    # Frontend static files
-    location / {
-        root $APP_DIR/frontend/dist;
-        try_files \$uri \$uri/ /index.html;
-        expires 1d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # API and media
+    # API - proxy to backend (more specific paths first)
     location /api/ {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
+        proxy_pass http://127.0.0.1:$WISHADAY_PORT/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -514,20 +506,28 @@ server {
         proxy_cache_bypass \$http_upgrade;
     }
 
-    location /media/ {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        expires 7d;
-        add_header Cache-Control "public, immutable";
-    }
-
+    # Health check endpoint
     location /health {
-        proxy_pass http://127.0.0.1:$WISHADAY_PORT;
+        proxy_pass http://127.0.0.1:$WISHADAY_PORT/health;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         access_log off;
+    }
+
+    # Media files - serve directly from filesystem for better performance
+    location /media/ {
+        alias $APP_DIR/app/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files \$uri \$uri/ =404;
+    }
+
+    # Frontend static files - catch-all (must be last)
+    location / {
+        root $APP_DIR/frontend/dist;
+        try_files \$uri \$uri/ /index.html;
+        expires 1d;
+        add_header Cache-Control "public, immutable";
     }
 
     # Gzip compression

@@ -243,7 +243,16 @@ async def health_check():
         # Get cleanup summary
         cleanup_summary = get_cleanup_summary(db)
     except Exception as e:
-        db_status = f"unhealthy: {e}"
+        db_status = f"unhealthy: {str(e)}"
+        # Provide default cleanup summary on error
+        cleanup_summary = {
+            "expired_wishes_ready_for_deletion": 0,
+            "wishes_in_grace_period": 0,
+            "total_wishes": 0,
+            "total_images": 0,
+            "grace_period_minutes": settings.SOFT_DELETE_GRACE_PERIOD_MINUTES,
+            "cleanup_interval_minutes": settings.CLEANUP_INTERVAL_MINUTES,
+        }
     finally:
         db.close()
     
