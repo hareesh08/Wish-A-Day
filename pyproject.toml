@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A wish sharing platform with self-destructing wishes"
 requires-python = ">=3.11"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Hareesh Works", email = "hareesh@example.com"}
 ]
@@ -48,6 +48,9 @@ profile = "black"
 line_length = 100
 skip = [".venv", "venv"]
 known_first_party = ["app"]
+
+[tool.setuptools]
+packages = ["app"]
 
 [tool.mypy]
 python_version = "3.11"
