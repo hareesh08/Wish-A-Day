@@ -423,14 +423,41 @@ init_database() {
         " || log_warn "Database initialization failed, will retry on service start"
     }
     
-    # Set proper permissions
+    # Always ensure proper permissions after initialization
+    fix_database_permissions
+    
+    log_success "Database initialization completed"
+}
+
+# Fix database permissions specifically
+fix_database_permissions() {
+    log_step "Fixing database permissions"
+    
+    # Ensure database directory exists and has proper permissions
+    mkdir -p "$APP_DIR/app"
+    chown "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR/app"
+    chmod 755 "$APP_DIR/app"
+    
+    # Fix database file permissions if it exists
     if [[ -f "$APP_DIR/app/wishaday.db" ]]; then
         chown "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR/app/wishaday.db"
         chmod 664 "$APP_DIR/app/wishaday.db"
-        log_success "Database initialized and permissions set"
+        log_info "Database file permissions fixed"
+        
+        # Verify permissions
+        local db_owner=$(stat -c %U "$APP_DIR/app/wishaday.db")
+        local db_perms=$(stat -c %a "$APP_DIR/app/wishaday.db")
+        log_info "Database owner: $db_owner, permissions: $db_perms"
+        
+        if [[ "$db_owner" != "$WISHADAY_USER" ]]; then
+            log_error "Database owner is incorrect: $db_owner (should be $WISHADAY_USER)"
+            return 1
+        fi
     else
-        log_warn "Database file not created, service may create it on first start"
+        log_warn "Database file does not exist"
     fi
+    
+    log_success "Database permissions verified"
 }
 
 # Create systemd service
@@ -646,6 +673,7 @@ fix_all_permissions() {
     
     # Database permissions
     if [[ -f "$APP_DIR/app/wishaday.db" ]]; then
+        chown "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR/app/wishaday.db"
         chmod 664 "$APP_DIR/app/wishaday.db"
     fi
     
@@ -976,11 +1004,29 @@ diagnose_and_fix() {
         issues_found=$((issues_found + 1))
         init_database
     else
-        # Check if database is accessible
-        if ! sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python -c 'from app.database import SessionLocal; db = SessionLocal(); db.close()'" 2>/dev/null; then
-            log_warn "Database not accessible, reinitializing..."
+        # Check database permissions
+        local db_owner=$(stat -c %U "$APP_DIR/app/wishaday.db" 2>/dev/null || echo "unknown")
+        local db_perms=$(stat -c %a "$APP_DIR/app/wishaday.db" 2>/dev/null || echo "000")
+        
+        if [[ "$db_owner" != "$WISHADAY_USER" ]] || [[ "$db_perms" != "664" ]]; then
+            log_warn "Database permission issues found (owner: $db_owner, perms: $db_perms)"
             issues_found=$((issues_found + 1))
-            init_database
+            fix_database_permissions
+        fi
+        
+        # Check if database is accessible and writable
+        if ! sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python -c 'from app.database import SessionLocal; db = SessionLocal(); db.close()'" 2>/dev/null; then
+            log_warn "Database not accessible, checking for readonly issues..."
+            issues_found=$((issues_found + 1))
+            
+            # Test if it's a readonly database issue
+            if sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python -c 'import sqlite3; conn = sqlite3.connect(\"$APP_DIR/app/wishaday.db\"); conn.execute(\"CREATE TABLE IF NOT EXISTS test_table (id INTEGER)\"); conn.close()'" 2>&1 | grep -q "readonly"; then
+                log_warn "Database is readonly, fixing permissions..."
+                fix_database_permissions
+            else
+                log_warn "Database has other issues, reinitializing..."
+                init_database
+            fi
         fi
     fi
     
@@ -1048,6 +1094,46 @@ diagnose_and_fix() {
         log_success "No issues found, system is healthy!"
     else
         log_success "Fixed $issues_found issues successfully!"
+    fi
+}
+
+# Test database connectivity specifically
+test_database_connectivity() {
+    log_step "Testing database connectivity"
+    
+    if [[ ! -f "$APP_DIR/app/wishaday.db" ]]; then
+        echo -e "  ${RED}✗${NC} Database file does not exist"
+        return 1
+    fi
+    
+    # Check file permissions
+    local db_owner=$(stat -c %U "$APP_DIR/app/wishaday.db")
+    local db_perms=$(stat -c %a "$APP_DIR/app/wishaday.db")
+    
+    if [[ "$db_owner" != "$WISHADAY_USER" ]]; then
+        echo -e "  ${RED}✗${NC} Database owner incorrect: $db_owner (should be $WISHADAY_USER)"
+        return 1
+    fi
+    
+    if [[ "$db_perms" != "664" ]]; then
+        echo -e "  ${YELLOW}!${NC} Database permissions: $db_perms (recommended: 664)"
+    fi
+    
+    # Test database connection
+    if sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python -c 'from app.database import SessionLocal; db = SessionLocal(); db.close(); print(\"OK\")'" 2>/dev/null | grep -q "OK"; then
+        echo -e "  ${GREEN}✓${NC} Database connection: OK"
+    else
+        echo -e "  ${RED}✗${NC} Database connection: FAILED"
+        return 1
+    fi
+    
+    # Test database write permissions
+    if sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python -c 'import sqlite3; conn = sqlite3.connect(\"$APP_DIR/app/wishaday.db\"); conn.execute(\"CREATE TABLE IF NOT EXISTS test_write (id INTEGER)\"); conn.execute(\"DROP TABLE IF EXISTS test_write\"); conn.close(); print(\"OK\")'" 2>/dev/null | grep -q "OK"; then
+        echo -e "  ${GREEN}✓${NC} Database write permissions: OK"
+        return 0
+    else
+        echo -e "  ${RED}✗${NC} Database write permissions: FAILED (readonly database)"
+        return 1
     fi
 }
 
@@ -1132,7 +1218,7 @@ test_deployment() {
     fi
     
     # Test 5: Database connectivity
-    if sudo -u "$WISHADAY_USER" bash -c "cd $APP_DIR && source venv/bin/activate && python -c 'from app.database import SessionLocal; db = SessionLocal(); db.close(); print(\"OK\")'" 2>/dev/null | grep -q "OK"; then
+    if test_database_connectivity >/dev/null 2>&1; then
         echo -e "  ${GREEN}✓${NC} Database connectivity"
         tests_passed=$((tests_passed + 1))
     else
@@ -1381,13 +1467,14 @@ show_help() {
     echo "  fix-all     - Fix all common issues"
     echo "  fix-502     - Fix 502 Bad Gateway errors"
     echo "  fix-perms   - Fix file permissions"
-    echo "  fix-db      - Fix database issues"
+    echo "  fix-db      - Fix database issues and permissions"
     echo "  fix-env     - Fix environment configuration"
     echo "  update      - Update application from git"
     echo ""
     echo -e "${BOLD}Monitoring:${NC}"
     echo "  logs        - Show recent logs"
     echo "  test        - Test all endpoints"
+    echo "  test-db     - Test database connectivity and permissions"
     echo "  monitor     - Real-time monitoring"
     echo ""
     echo -e "${BOLD}Backup:${NC}"
@@ -1461,6 +1548,9 @@ main() {
             ;;
         "fix-db")
             check_root
+            log_header "Fixing Database Issues"
+            echo ""
+            fix_database_permissions
             init_database
             ;;
         "fix-env")
@@ -1472,6 +1562,9 @@ main() {
             ;;
         "test")
             test_connectivity
+            ;;
+        "test-db")
+            test_database_connectivity
             ;;
         "update")
             check_root
