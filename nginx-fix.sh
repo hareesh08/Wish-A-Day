@@ -108,7 +108,7 @@ server {
 
     # API - proxy to backend (more specific paths first)
     location /api/ {
-        proxy_pass http://127.0.0.1:WISHADAY_PORT_PLACEHOLDER/;
+        proxy_pass http://127.0.0.1:WISHADAY_PORT_PLACEHOLDER/api/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
