@@ -15,6 +15,8 @@
 #   fix-nginx   - Fix Nginx configuration and routing
 #   fix-502     - Fix 502 Bad Gateway errors
 #   fix-perms   - Fix file permissions and ownership
+#   start       - Start all Wishaday services
+#   stop        - Stop all Wishaday services completely
 #   restart     - Restart all services
 #   status      - Show current status of all components
 #   logs        - Show recent logs
@@ -85,6 +87,8 @@ show_help() {
     echo "  fix-nginx   - Fix Nginx configuration and routing"
     echo "  fix-502     - Fix 502 Bad Gateway errors"
     echo "  fix-perms   - Fix file permissions and ownership"
+    echo "  start       - Start all Wishaday services"
+    echo "  stop        - Stop all Wishaday services completely"
     echo "  restart     - Restart all services"
     echo "  status      - Show current status of all components"
     echo "  logs        - Show recent logs"
@@ -94,6 +98,8 @@ show_help() {
     echo "Examples:"
     echo "  sudo ./server.sh diagnose    # Check what's wrong"
     echo "  sudo ./server.sh fix-502     # Fix 502 errors"
+    echo "  sudo ./server.sh stop        # Stop all services"
+    echo "  sudo ./server.sh start       # Start all services"
     echo "  sudo ./server.sh restart     # Restart everything"
     echo "  sudo ./server.sh test        # Test all endpoints"
     echo ""
@@ -527,6 +533,160 @@ fix_permissions() {
     fi
 }
 
+# Stop all services
+stop_services() {
+    log_header "Stopping All Wishaday Services"
+    echo ""
+    
+    log_info "Stopping Wishaday service..."
+    systemctl stop $SERVICE_NAME || log_warn "Wishaday service was not running"
+    
+    log_info "Checking for remaining processes on port 8000..."
+    if netstat -tlnp | grep -q ":8000 "; then
+        log_warn "Port 8000 still in use, killing processes..."
+        PIDS=$(lsof -ti:8000 2>/dev/null || true)
+        if [[ -n "$PIDS" ]]; then
+            echo "$PIDS" | xargs kill -TERM 2>/dev/null || true
+            sleep 3
+            # Force kill if still running
+            PIDS=$(lsof -ti:8000 2>/dev/null || true)
+            if [[ -n "$PIDS" ]]; then
+                echo "$PIDS" | xargs kill -9 2>/dev/null || true
+                log_info "Force killed remaining processes"
+            fi
+        fi
+    fi
+    
+    log_info "Checking for any remaining Wishaday processes..."
+    WISHADAY_PIDS=$(ps aux | grep -E "(wishaday|uvicorn.*app\.main)" | grep -v grep | awk '{print $2}' || true)
+    if [[ -n "$WISHADAY_PIDS" ]]; then
+        log_warn "Found remaining Wishaday processes, terminating..."
+        echo "$WISHADAY_PIDS" | xargs kill -TERM 2>/dev/null || true
+        sleep 2
+        # Force kill if still running
+        WISHADAY_PIDS=$(ps aux | grep -E "(wishaday|uvicorn.*app\.main)" | grep -v grep | awk '{print $2}' || true)
+        if [[ -n "$WISHADAY_PIDS" ]]; then
+            echo "$WISHADAY_PIDS" | xargs kill -9 2>/dev/null || true
+            log_info "Force killed remaining Wishaday processes"
+        fi
+    fi
+    
+    # Optional: Stop Nginx (uncomment if you want to stop Nginx too)
+    # log_info "Stopping Nginx..."
+    # systemctl stop nginx || log_warn "Nginx was not running"
+    
+    log_success "All Wishaday services stopped"
+    
+    # Verify everything is stopped
+    echo ""
+    log_info "Verification:"
+    if systemctl is-active --quiet $SERVICE_NAME; then
+        log_error "Wishaday service is still running"
+    else
+        log_success "Wishaday service: STOPPED"
+    fi
+    
+    if netstat -tlnp | grep -q ":8000 "; then
+        log_error "Port 8000 is still in use"
+        netstat -tlnp | grep ":8000 "
+    else
+        log_success "Port 8000: FREE"
+    fi
+    
+    REMAINING=$(ps aux | grep -E "(wishaday|uvicorn.*app\.main)" | grep -v grep || true)
+    if [[ -n "$REMAINING" ]]; then
+        log_error "Some Wishaday processes are still running:"
+        echo "$REMAINING"
+    else
+        log_success "No Wishaday processes running"
+    fi
+    
+    echo ""
+}
+
+# Start all services
+start_services() {
+    log_header "Starting All Wishaday Services"
+    echo ""
+    
+    # Check if already running
+    if systemctl is-active --quiet $SERVICE_NAME; then
+        log_warn "Wishaday service is already running"
+        log_info "Use 'restart' command to restart running services"
+        return 0
+    fi
+    
+    # Check if port is available
+    if netstat -tlnp | grep -q ":8000 "; then
+        log_error "Port 8000 is already in use by another process"
+        netstat -tlnp | grep ":8000 "
+        log_info "Use 'stop' command first to clean up, or check for conflicting services"
+        return 1
+    fi
+    
+    # Ensure Nginx is running
+    log_info "Ensuring Nginx is running..."
+    if ! systemctl is-active --quiet nginx; then
+        systemctl start nginx
+        log_info "Started Nginx"
+    else
+        log_success "Nginx is already running"
+    fi
+    
+    # Start Wishaday service
+    log_info "Starting Wishaday service..."
+    systemctl start $SERVICE_NAME
+    
+    # Wait for service to start
+    log_info "Waiting for service to start..."
+    sleep 5
+    
+    # Check if service started successfully
+    if systemctl is-active --quiet $SERVICE_NAME; then
+        log_success "Wishaday service started successfully"
+    else
+        log_error "Wishaday service failed to start"
+        log_info "Service status:"
+        systemctl status $SERVICE_NAME --no-pager -l
+        log_info "Recent logs:"
+        journalctl -u $SERVICE_NAME -n 10 --no-pager
+        return 1
+    fi
+    
+    # Wait a bit more for the service to be fully ready
+    log_info "Waiting for service to be ready..."
+    sleep 3
+    
+    # Test if backend is responding
+    log_info "Testing backend connectivity..."
+    RETRY_COUNT=0
+    MAX_RETRIES=10
+    
+    while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+        if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health 2>/dev/null | grep -q "200"; then
+            log_success "Backend is responding"
+            break
+        else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; then
+                log_info "Backend not ready yet, waiting... ($RETRY_COUNT/$MAX_RETRIES)"
+                sleep 2
+            else
+                log_error "Backend is not responding after $MAX_RETRIES attempts"
+                log_info "Recent service logs:"
+                journalctl -u $SERVICE_NAME -n 5 --no-pager
+                return 1
+            fi
+        fi
+    done
+    
+    log_success "All services started successfully"
+    echo ""
+    
+    # Show final status
+    show_status
+}
+
 # Restart all services
 restart_services() {
     log_header "Restarting Services"
@@ -641,6 +801,14 @@ main() {
         "fix-perms")
             check_root
             fix_permissions
+            ;;
+        "start")
+            check_root
+            start_services
+            ;;
+        "stop")
+            check_root
+            stop_services
             ;;
         "restart")
             check_root
