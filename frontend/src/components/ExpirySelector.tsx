@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, Eye, Infinity } from "lucide-react";
+import { CalendarIcon, Clock, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type ExpiryType = "never" | "time" | "views";
+export type ExpiryType = "time" | "views";
 
 interface ExpirySelectorProps {
   expiryType: ExpiryType;
@@ -37,14 +37,13 @@ export function ExpirySelector({
   onMaxViewsChange,
 }: ExpirySelectorProps) {
   const options = [
-    { value: "never" as ExpiryType, label: "Never expire", icon: Infinity },
     { value: "time" as ExpiryType, label: "Expire after time", icon: Clock },
     { value: "views" as ExpiryType, label: "Expire after views", icon: Eye },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {options.map((option) => {
           const Icon = option.icon;
           const isSelected = expiryType === option.value;
@@ -54,10 +53,6 @@ export function ExpirySelector({
               type="button"
               onClick={() => {
                 onExpiryTypeChange(option.value);
-                if (option.value === "never") {
-                  onExpiresAtChange(undefined);
-                  onMaxViewsChange(undefined);
-                }
               }}
               className={cn(
                 "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",

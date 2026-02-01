@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ const CreateWish = () => {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [theme, setTheme] = useState<WishTheme>("default");
-  const [expiryType, setExpiryType] = useState<ExpiryType>("never");
+  const [expiryType, setExpiryType] = useState<ExpiryType>("time");
   const [expiresAt, setExpiresAt] = useState<Date>();
   const [maxViews, setMaxViews] = useState<number>();
   const [images, setImages] = useState<File[]>([]);
@@ -31,7 +31,19 @@ const CreateWish = () => {
   const [createdWishUrl, setCreatedWishUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  const isValid = message.trim().length > 0;
+  // Set default expiry date (7 days from now)
+  useEffect(() => {
+    if (!expiresAt) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 7);
+      setExpiresAt(defaultDate);
+    }
+  }, [expiresAt]);
+
+  const isValid = message.trim().length > 0 && (
+    (expiryType === "time" && expiresAt) || 
+    (expiryType === "views" && maxViews && maxViews > 0)
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
