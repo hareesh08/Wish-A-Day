@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { WishTheme } from "./ThemeSelector";
-import { CelebrationItem } from "./CelebrationItems";
+import type { CelebrationItem } from "@/services/api";
 import { 
   Heart, Sparkles, Star, PartyPopper, 
   Flower2, HeartHandshake, Award, Gift, Music, Calendar,

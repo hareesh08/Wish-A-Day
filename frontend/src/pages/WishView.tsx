@@ -138,6 +138,7 @@ const WishView = () => {
               theme={wish.theme as WishTheme}
               images={wish.images}
               remainingViews={wish.remaining_views}
+              celebrationItems={wish.celebration_items}
             />
           </div>
         </div>
