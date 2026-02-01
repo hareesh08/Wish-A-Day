@@ -28,6 +28,7 @@
 #   fix-perms   - Fix file permissions
 #   fix-db      - Fix database issues
 #   fix-env     - Fix environment configuration
+#   fix-upload  - Fix image upload 500 errors
 #   logs        - Show recent logs
 #   test        - Test all endpoints
 #   update      - Update application from git
@@ -1077,6 +1078,24 @@ diagnose_and_fix() {
         systemctl reload nginx
     fi
     
+    # Check image upload functionality
+    log_step "Checking image upload functionality"
+    local upload_dir=$(grep "UPLOAD_DIR=" "$APP_DIR/.env" 2>/dev/null | cut -d'=' -f2 | sed 's/^"//' | sed 's/"$//' || echo "$APP_DIR/app/uploads")
+    if [[ ! -d "$upload_dir" ]]; then
+        log_warn "Upload directory missing, creating..."
+        issues_found=$((issues_found + 1))
+        mkdir -p "$upload_dir/wishes"
+        chown -R "$WISHADAY_USER:$WISHADAY_GROUP" "$upload_dir"
+        chmod 775 "$upload_dir"
+    fi
+    
+    # Test image processing imports
+    if ! sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && python3 -c 'from app.services.image import validate_image; from PIL import Image'" 2>/dev/null; then
+        log_warn "Image processing dependencies missing, installing..."
+        issues_found=$((issues_found + 1))
+        sudo -u "$WISHADAY_USER" bash -c "cd '$APP_DIR' && source venv/bin/activate && pip install pillow"
+    fi
+    
     # Final service restart if issues were found
     if [[ $issues_found -gt 0 ]]; then
         log_info "Found and fixed $issues_found issues, restarting services..."
@@ -1442,6 +1461,309 @@ real_time_monitor() {
     done
 }
 
+# Fix image upload 500 errors
+fix_image_upload_500() {
+    log_header "Fixing Image Upload 500 Errors"
+    echo ""
+    
+    local issues_found=0
+    
+    # Step 1: Check service status and logs
+    log_step "Checking service status and recent errors"
+    if ! systemctl is-active --quiet "$SERVICE_NAME"; then
+        log_error "Wishaday service is NOT running"
+        issues_found=$((issues_found + 1))
+    else
+        log_success "Wishaday service is running"
+    fi
+    
+    # Check for recent errors in logs
+    local error_logs=$(journalctl -u "$SERVICE_NAME" --since "10 minutes ago" | grep -i "error\|exception\|traceback" | tail -5)
+    if [[ -n "$error_logs" ]]; then
+        log_warn "Found recent errors in logs:"
+        echo "$error_logs"
+        issues_found=$((issues_found + 1))
+    else
+        log_info "No recent errors found in service logs"
+    fi
+    
+    # Step 2: Check environment configuration
+    log_step "Checking environment configuration"
+    if [[ ! -f "$APP_DIR/.env" ]]; then
+        log_error ".env file is missing"
+        log_info "Creating .env file from .env.example..."
+        issues_found=$((issues_found + 1))
+        
+        if [[ -f "$APP_DIR/.env.example" ]]; then
+            cp "$APP_DIR/.env.example" "$APP_DIR/.env"
+            
+            # Set production values
+            sed -i "s|DATABASE_URL=sqlite:///./wishaday.db|DATABASE_URL=sqlite:///$APP_DIR/app/wishaday.db|g" "$APP_DIR/.env"
+            sed -i "s|UPLOAD_DIR=./app/uploads|UPLOAD_DIR=$APP_DIR/app/uploads|g" "$APP_DIR/.env"
+            sed -i "s|BASE_URL=http://localhost:8000|BASE_URL=https://$WISHADAY_DOMAIN|g" "$APP_DIR/.env"
+            sed -i "s|DEBUG=true|DEBUG=false|g" "$APP_DIR/.env"
+            sed -i "s|SECRET_KEY=your-secret-key-change-in-production|SECRET_KEY=$(openssl rand -hex 32)|g" "$APP_DIR/.env"
+            
+            chown "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR/.env"
+            chmod 640 "$APP_DIR/.env"
+            
+            log_success "Created and configured .env file"
+        else
+            log_error ".env.example file not found!"
+            return 1
+        fi
+    else
+        log_success ".env file exists"
+        # Fix any configuration issues
+        fix_env_file
+    fi
+    
+    # Step 3: Check upload directory
+    log_step "Checking upload directory"
+    local upload_dir=$(grep "UPLOAD_DIR=" "$APP_DIR/.env" | cut -d'=' -f2 | sed 's/^"//' | sed 's/"$//')
+    if [[ -z "$upload_dir" ]]; then
+        upload_dir="$APP_DIR/app/uploads"
+    fi
+    
+    if [[ ! -d "$upload_dir" ]]; then
+        log_warn "Upload directory doesn't exist, creating: $upload_dir"
+        mkdir -p "$upload_dir/wishes"
+        chown -R "$WISHADAY_USER:$WISHADAY_GROUP" "$upload_dir"
+        chmod 775 "$upload_dir"
+        issues_found=$((issues_found + 1))
+        log_success "Created upload directory with proper permissions"
+    else
+        log_success "Upload directory exists"
+        # Fix permissions anyway
+        chown -R "$WISHADAY_USER:$WISHADAY_GROUP" "$upload_dir"
+        chmod 775 "$upload_dir"
+        log_info "Fixed upload directory permissions"
+    fi
+    
+    # Step 4: Check Python dependencies
+    log_step "Checking Python dependencies"
+    cd "$APP_DIR"
+    
+    # Test basic imports
+    local import_test_result=$(sudo -u "$WISHADAY_USER" bash -c "
+        source venv/bin/activate
+        python3 -c '
+import sys
+try:
+    import fastapi, uvicorn, sqlalchemy, pydantic_settings
+    from PIL import Image
+    from apscheduler.schedulers.background import BackgroundScheduler
+    print(\"OK\")
+except ImportError as e:
+    print(f\"MISSING: {e}\")
+'
+    " 2>/dev/null)
+    
+    if [[ "$import_test_result" != "OK" ]]; then
+        log_warn "Python dependencies missing or broken: $import_test_result"
+        log_info "Installing missing dependencies..."
+        issues_found=$((issues_found + 1))
+        
+        sudo -u "$WISHADAY_USER" bash -c "
+            source venv/bin/activate
+            pip3 install fastapi uvicorn sqlalchemy pydantic-settings pillow apscheduler python-multipart
+        "
+        log_success "Dependencies installed"
+    else
+        log_success "All Python dependencies are available"
+    fi
+    
+    # Test app import
+    log_step "Testing application import"
+    local app_import_result=$(sudo -u "$WISHADAY_USER" bash -c "
+        cd '$APP_DIR'
+        source venv/bin/activate
+        export PYTHONPATH='$APP_DIR'
+        python3 -c 'from app.main import app; print(\"OK\")' 2>&1
+    ")
+    
+    if [[ "$app_import_result" != "OK" ]]; then
+        log_error "Application import failed: $app_import_result"
+        issues_found=$((issues_found + 1))
+        
+        # Try to identify the specific issue
+        if echo "$app_import_result" | grep -q "database"; then
+            log_info "Database-related import issue detected, fixing database..."
+            init_database
+        elif echo "$app_import_result" | grep -q "ModuleNotFoundError"; then
+            log_info "Missing module detected, reinstalling dependencies..."
+            sudo -u "$WISHADAY_USER" bash -c "
+                cd '$APP_DIR'
+                source venv/bin/activate
+                if [[ -f 'pyproject.toml' ]]; then
+                    pip install -e .
+                else
+                    pip install fastapi uvicorn sqlalchemy pydantic-settings pillow apscheduler python-multipart
+                fi
+            "
+        fi
+    else
+        log_success "Application imports successfully"
+    fi
+    
+    # Step 5: Check database
+    log_step "Checking database"
+    if ! test_database_connectivity >/dev/null 2>&1; then
+        log_warn "Database connectivity issues found"
+        issues_found=$((issues_found + 1))
+        
+        # Try to fix database issues
+        fix_database_permissions
+        
+        # If still failing, reinitialize
+        if ! test_database_connectivity >/dev/null 2>&1; then
+            log_info "Reinitializing database..."
+            init_database
+        fi
+    else
+        log_success "Database connectivity is working"
+    fi
+    
+    # Step 6: Test image processing functionality
+    log_step "Testing image processing functionality"
+    local image_test_result=$(sudo -u "$WISHADAY_USER" bash -c "
+        cd '$APP_DIR'
+        source venv/bin/activate
+        export PYTHONPATH='$APP_DIR'
+        python3 -c '
+from app.services.image import validate_image, ALLOWED_CONTENT_TYPES, ALLOWED_EXTENSIONS
+from app.config import settings
+print(f\"Max file size: {settings.MAX_FILE_SIZE} bytes\")
+print(f\"Max images per wish: {settings.MAX_IMAGES_PER_WISH}\")
+print(f\"Upload path: {settings.upload_path}\")
+print(\"OK\")
+' 2>&1
+    ")
+    
+    if ! echo "$image_test_result" | grep -q "OK"; then
+        log_error "Image service test failed: $image_test_result"
+        issues_found=$((issues_found + 1))
+    else
+        log_success "Image processing functionality is working"
+    fi
+    
+    # Step 7: Fix service and restart if issues were found
+    if [[ $issues_found -gt 0 ]]; then
+        log_step "Restarting services after fixes"
+        
+        # Stop service
+        systemctl stop "$SERVICE_NAME" || true
+        sleep 2
+        
+        # Kill any remaining processes
+        if netstat -tlnp | grep -q ":$WISHADAY_PORT "; then
+            log_warn "Port $WISHADAY_PORT still in use, killing processes..."
+            lsof -ti:"$WISHADAY_PORT" | xargs kill -9 2>/dev/null || true
+            sleep 2
+        fi
+        
+        # Fix ownership
+        chown -R "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR"
+        
+        # Update service file to include better error handling
+        create_systemd_service
+        
+        # Start service
+        systemctl daemon-reload
+        systemctl start "$SERVICE_NAME"
+        
+        # Wait and check
+        show_progress 5 "Waiting for service to start"
+        
+        if systemctl is-active --quiet "$SERVICE_NAME"; then
+            log_success "Service started successfully"
+            
+            # Test backend
+            if curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$WISHADAY_PORT/health" 2>/dev/null | grep -q "200"; then
+                log_success "Backend is responding"
+            else
+                log_error "Backend is not responding"
+                log_info "Recent logs:"
+                journalctl -u "$SERVICE_NAME" -n 10 --no-pager
+                return 1
+            fi
+        else
+            log_error "Service failed to start"
+            log_info "Service status:"
+            systemctl status "$SERVICE_NAME" --no-pager -l
+            return 1
+        fi
+    fi
+    
+    # Step 8: Test image upload endpoint
+    log_step "Testing image upload endpoint"
+    
+    # First, create a test wish to upload to
+    local wish_response=$(curl -s -X POST "http://127.0.0.1:$WISHADAY_PORT/api/wishes" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "message": "Test wish for image upload diagnostic",
+            "theme": "default"
+        }' 2>/dev/null || echo "")
+    
+    if [[ -n "$wish_response" ]]; then
+        local wish_slug=$(echo "$wish_response" | python3 -c "import sys, json; print(json.load(sys.stdin)['slug'])" 2>/dev/null || echo "")
+        
+        if [[ -n "$wish_slug" ]]; then
+            log_info "Test wish created with slug: $wish_slug"
+            
+            # Create a small test image
+            python3 -c "
+from PIL import Image
+img = Image.new('RGB', (100, 100), color='red')
+img.save('/tmp/test_image_upload.jpg', 'JPEG')
+"
+            
+            # Test image upload
+            local upload_response=$(curl -s -X POST "http://127.0.0.1:$WISHADAY_PORT/api/wishes/$wish_slug/images" \
+                -F "file=@/tmp/test_image_upload.jpg" 2>/dev/null || echo "ERROR")
+            
+            if [[ "$upload_response" == "ERROR" ]]; then
+                log_error "Image upload test failed with curl error"
+                issues_found=$((issues_found + 1))
+            elif echo "$upload_response" | grep -q "url"; then
+                log_success "Image upload test successful!"
+                log_info "Upload response: $upload_response"
+            else
+                log_error "Image upload test failed"
+                log_info "Response: $upload_response"
+                issues_found=$((issues_found + 1))
+            fi
+            
+            # Clean up
+            rm -f /tmp/test_image_upload.jpg
+        else
+            log_error "Failed to extract wish slug from response"
+            issues_found=$((issues_found + 1))
+        fi
+    else
+        log_error "Failed to create test wish for upload testing"
+        issues_found=$((issues_found + 1))
+    fi
+    
+    # Final summary
+    echo ""
+    log_header "Image Upload Fix Summary"
+    echo ""
+    
+    if [[ $issues_found -eq 0 ]]; then
+        log_success "No issues found! Image upload functionality should be working correctly."
+    else
+        log_success "Fixed $issues_found issues related to image upload functionality."
+        log_info "The 500 Internal Server Error during image uploads should now be resolved."
+    fi
+    
+    echo ""
+    log_info "You can now test the image upload functionality in your frontend."
+    log_info "If issues persist, check the logs with: journalctl -u $SERVICE_NAME -f"
+    echo ""
+}
+
 # Show help
 show_help() {
     echo -e "${BOLD}Wishaday Server Management Script v2.0${NC}"
@@ -1469,6 +1791,7 @@ show_help() {
     echo "  fix-perms   - Fix file permissions"
     echo "  fix-db      - Fix database issues and permissions"
     echo "  fix-env     - Fix environment configuration"
+    echo "  fix-upload  - Fix image upload 500 errors"
     echo "  update      - Update application from git"
     echo ""
     echo -e "${BOLD}Monitoring:${NC}"
@@ -1556,6 +1879,10 @@ main() {
         "fix-env")
             check_root
             configure_environment
+            ;;
+        "fix-upload")
+            check_root
+            fix_image_upload_500
             ;;
         "logs")
             show_recent_logs
