@@ -161,42 +161,6 @@ const BirthdayAnimation = ({ elements }: { elements: FloatingElement[] }) => {
     </div>
   );
 };
-            transform: `rotate(${el.delay * 90}deg)`,
-          }}
-        />
-      ))}
-      
-      {/* Multiple party poppers with staggered timing */}
-      <PartyPopper 
-        className="absolute top-[8%] left-[3%] text-accent animate-bounce-pop-enhanced" 
-        style={{ width: 36, height: 36, animationDelay: "0.3s" }}
-      />
-      <PartyPopper 
-        className="absolute top-[12%] right-[5%] text-primary animate-bounce-pop-enhanced scale-x-[-1]" 
-        style={{ width: 32, height: 32, animationDelay: "0.8s" }}
-      />
-      <PartyPopper 
-        className="absolute bottom-[15%] left-[8%] text-accent animate-bounce-pop-enhanced" 
-        style={{ width: 28, height: 28, animationDelay: "1.2s" }}
-      />
-      
-      {/* Birthday sparkles */}
-      <div className="birthday-sparkles">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div
-            key={`sparkle-${i}`}
-            className="birthday-sparkle animate-birthday-sparkle"
-            style={{
-              left: `${10 + i * 7}%`,
-              top: `${20 + (i % 3) * 20}%`,
-              animationDelay: `${i * 0.2}s`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // Love Theme - Enhanced floating hearts, rose petals, soft glows
 const LoveAnimation = ({ elements }: { elements: FloatingElement[] }) => (

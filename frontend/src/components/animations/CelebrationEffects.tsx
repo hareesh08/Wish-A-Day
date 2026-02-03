@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { CelebrationItem } from "../CelebrationItems";
 import { 
   Candy, Cake, Gift, PartyPopper, Sparkles 
 } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 interface CelebrationEffectsProps {
   items: CelebrationItem[];
@@ -262,34 +263,6 @@ const GiftEffect = ({ item }: { item: AnimatedItem }) => {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/60"
           style={{ width: item.size, height: item.size }}
         />
-      </div>
-    </div>
-  );
-};
-      <div className={`gift-box ${opened ? 'opened' : ''}`}>
-        <div 
-          className="gift-lid"
-          style={{ backgroundColor: item.color }}
-        />
-        <div 
-          className="gift-base"
-          style={{ 
-            backgroundColor: item.color,
-            width: item.size * 2,
-            height: item.size * 1.5,
-          }}
-        >
-          <div className="gift-ribbon" />
-        </div>
-        <Gift 
-          className="gift-icon text-white/70"
-          style={{ width: item.size, height: item.size }}
-        />
-        {opened && (
-          <div className="gift-glow animate-gift-glow">
-            <Sparkles className="text-amber-400" style={{ width: item.size, height: item.size }} />
-          </div>
-        )}
       </div>
     </div>
   );

@@ -235,9 +235,23 @@ setup_repository() {
     elif [[ -n "$GIT_REPO" ]]; then
         log_info "Cloning repository from $GIT_REPO"
         sudo -u "$WISHADAY_USER" git clone "$GIT_REPO" .
+    elif [[ -n "$SOURCE_DIR" && -d "$SOURCE_DIR" ]]; then
+        log_info "Copying code from local directory: $SOURCE_DIR"
+        # Copy all files except .git directory
+        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' "$SOURCE_DIR/" "$APP_DIR/"
+        log_info "Code copied from $SOURCE_DIR"
+    elif [[ -d "/root/Wish-A-Day" ]]; then
+        log_info "Copying code from default location: /root/Wish-A-Day/"
+        # Copy all files except .git directory
+        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' "/root/Wish-A-Day/" "$APP_DIR/"
+        log_info "Code copied from /root/Wish-A-Day/"
     else
-        log_warn "No git repository specified. Please manually copy your code to $APP_DIR"
-        log_info "You can set GIT_REPO environment variable for automatic cloning"
+        log_warn "No git repository or source directory found."
+        log_info "Checked locations:"
+        log_info "  - Git repository (GIT_REPO environment variable)"
+        log_info "  - Custom source directory (SOURCE_DIR environment variable)"
+        log_info "  - Default location: /root/Wish-A-Day/"
+        log_info "Please ensure code is available in one of these locations."
     fi
     
     # Ensure ownership
@@ -2112,6 +2126,7 @@ show_help() {
     echo "  WISHADAY_DOMAIN    - Domain name (default: wishaday.hareeshworks.in)"
     echo "  WISHADAY_PORT      - Backend port (default: 8000)"
     echo "  GIT_REPO          - Git repository URL for auto-clone"
+    echo "  SOURCE_DIR        - Local directory to copy code from (alternative to git)"
     echo "  NODE_VERSION      - Node.js version to install (default: 20)"
     echo ""
 }
