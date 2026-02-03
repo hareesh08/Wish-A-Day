@@ -1,5 +1,4 @@
-import
-{ useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, Sparkles, HeartCrack, Ghost } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { CelebrationItem } from "@/components/CelebrationItems";
 import { WishCard } from "@/components/WishCard";
 import { WishTheme } from "@/components/ThemeSelector";
 import { getWish, Wish } from "@/services/api";
+import { cn } from "@/lib/utils";
 
 type WishState = 
   | { status: "loading" }
@@ -30,6 +30,7 @@ const transformCelebrationItems = (items?: any[]): CelebrationItem[] => {
 const WishView = () => {
   const { slug } = useParams<{ slug: string }>();
   const [state, setState] = useState<WishState>({ status: "loading" });
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   useEffect(() => {
     if (!slug) {
@@ -47,6 +48,8 @@ const WishView = () => {
           setState({ status: "expired" });
         } else if (result.data) {
           setState({ status: "success", wish: result.data });
+          // Trigger page loaded animation after wish is loaded
+          setTimeout(() => setPageLoaded(true), 100);
         } else {
           setState({ status: "error" });
         }
@@ -58,16 +61,46 @@ const WishView = () => {
     fetchWish();
   }, [slug]);
 
-  // Loading state
+  // Enhanced loading state with theme preview
   if (state.status === "loading") {
-    // @ts-ignore
-      return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-button flex items-center justify-center animate-pulse">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 animate-gradient-shift" />
+        
+        {/* Loading sparkles */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-loading-sparkle"
+              style={{
+                left: `${10 + i * 8}%`,
+                top: `${20 + (i % 3) * 20}%`,
+                animationDelay: `${i * 0.2}s`,
+              }}
+            >
+              <Sparkles className="w-4 h-4 text-primary/30" />
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-center relative z-10">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full gradient-button flex items-center justify-center animate-loading-pulse">
+            <Sparkles className="w-10 h-10 text-primary-foreground animate-spin-slow" />
           </div>
-          <p className="text-muted-foreground">Loading your wish...</p>
+          <p className="text-lg text-muted-foreground animate-loading-text">
+            Preparing your magical wish...
+          </p>
+          <div className="mt-4 flex justify-center gap-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-primary animate-loading-dots"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -136,17 +169,43 @@ const WishView = () => {
     );
   }
 
-  // Success state
+  // Success state with enhanced animations
   const { wish } = state;
 
   return (
-    <div className={`min-h-screen theme-${wish.theme} relative`}>
-      {/* Theme background */}
-      <div className="absolute inset-0 theme-gradient opacity-5" />
+    <div className={`min-h-screen theme-${wish.theme} relative overflow-hidden`}>
+      {/* Enhanced theme background with animation */}
+      <div className="absolute inset-0 theme-gradient opacity-8 animate-background-pulse" />
+      
+      {/* Ambient theme particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-ambient-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: `${8 + Math.random() * 4}s`,
+            }}
+          >
+            <div 
+              className="w-2 h-2 rounded-full bg-primary/20"
+              style={{ 
+                boxShadow: `0 0 ${4 + Math.random() * 8}px hsl(var(--primary) / 0.3)` 
+              }}
+            />
+          </div>
+        ))}
+      </div>
       
       <div className="relative z-10 min-h-screen flex flex-col">
         <div className="flex-1 flex items-center justify-center py-12 px-4">
-          <div className="w-full max-w-2xl animate-slide-up">
+          <div className={cn(
+            "w-full max-w-2xl transition-all duration-1000",
+            pageLoaded ? "animate-wish-entrance" : "opacity-0 scale-90 translate-y-8"
+          )}>
             <WishCard
               title={wish.title}
               message={wish.message}
@@ -158,13 +217,16 @@ const WishView = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="py-6 text-center">
+        {/* Enhanced footer with animation */}
+        <footer className={cn(
+          "py-6 text-center transition-all duration-700 delay-1000",
+          pageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        )}>
           <Link
             to="/create"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-all duration-300 hover:scale-105"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 animate-sparkle" />
             Create your own wish
           </Link>
         </footer>

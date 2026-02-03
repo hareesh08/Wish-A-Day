@@ -54,46 +54,75 @@ export function WishCard({
 }: WishCardProps) {
   const [isAnimationActive, setIsAnimationActive] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [celebrationTriggered, setCelebrationTriggered] = useState(false);
+  const [entranceComplete, setEntranceComplete] = useState(false);
   const ThemeIcon = themeIcons[theme];
 
-  // Trigger animations on mount (when card opens)
+  // Enhanced animation sequence for wish viewing
   useEffect(() => {
-    const animationTimer = setTimeout(() => setIsAnimationActive(true), 100);
-    const contentTimer = setTimeout(() => setShowContent(true), 400);
-    
-    return () => {
-      clearTimeout(animationTimer);
-      clearTimeout(contentTimer);
-    };
-  }, []);
+    if (!isPreview) {
+      // Immediate theme animation start
+      const themeTimer = setTimeout(() => setIsAnimationActive(true), 50);
+      
+      // Staggered content reveal
+      const contentTimer = setTimeout(() => setShowContent(true), 200);
+      
+      // Celebration trigger after content is visible
+      const celebrationTimer = setTimeout(() => {
+        setCelebrationTriggered(true);
+        setEntranceComplete(true);
+      }, 800);
+      
+      return () => {
+        clearTimeout(themeTimer);
+        clearTimeout(contentTimer);
+        clearTimeout(celebrationTimer);
+      };
+    } else {
+      // Preview mode - faster, subtler animations
+      const timer = setTimeout(() => {
+        setIsAnimationActive(true);
+        setShowContent(true);
+        setEntranceComplete(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isPreview]);
 
   return (
     <div
       className={cn(
         `theme-${theme}`,
         "relative rounded-2xl overflow-hidden shadow-card",
-        "transform transition-all duration-500",
-        showContent ? "opacity-100 scale-100" : "opacity-0 scale-95",
+        "transform transition-all duration-700",
+        showContent ? "opacity-100 scale-100" : "opacity-0 scale-90",
+        entranceComplete && !isPreview && "animate-celebration-ready",
         className
       )}
     >
-      {/* Theme-specific background animations */}
+      {/* Enhanced theme-specific background animations */}
       <ThemeAnimations theme={theme} isActive={isAnimationActive} />
       
-      {/* Celebration item effects */}
+      {/* Celebration item effects - triggered after entrance */}
       <CelebrationEffects 
         items={celebrationItems} 
-        isActive={isAnimationActive && !isPreview}
+        isActive={celebrationTriggered && !isPreview}
       />
-
-      {/* Background gradient */}
-      <div className="absolute inset-0 theme-gradient opacity-10" />
       
-      {/* Animated decorative corner element */}
-      <div className="absolute top-4 right-4 opacity-20">
+      {/* Dramatic entrance overlay */}
+      {!isPreview && !entranceComplete && (
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/30 to-primary/20 animate-entrance-sweep z-20" />
+      )}
+
+      {/* Background gradient with enhanced depth */}
+      <div className="absolute inset-0 theme-gradient opacity-15" />
+      
+      {/* Enhanced animated decorative corner element */}
+      <div className="absolute top-4 right-4 opacity-25 animate-corner-entrance">
         <ThemeIcon className={cn(
-          "w-20 h-20",
-          theme === "love" || theme === "valentine" ? "animate-heartbeat" : "animate-float"
+          "w-24 h-24 transition-all duration-1000",
+          theme === "love" || theme === "valentine" ? "animate-heartbeat" : "animate-float",
+          entranceComplete && "animate-corner-glow"
         )} />
       </div>
 

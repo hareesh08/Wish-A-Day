@@ -53,17 +53,17 @@ const DefaultAnimation = ({ elements }: { elements: FloatingElement[] }) => (
   </div>
 );
 
-// Birthday Theme - Bouncing balloons, confetti, cake candles
+// Birthday Theme - Enhanced bouncing balloons, confetti, cake candles
 const BirthdayAnimation = ({ elements }: { elements: FloatingElement[] }) => {
   const balloonColors = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#F38181", "#AA96DA"];
   
   return (
     <div className="theme-animation-container">
-      {/* Floating balloons */}
-      {elements.slice(0, 6).map((el, i) => (
+      {/* Enhanced floating balloons with strings */}
+      {elements.slice(0, 8).map((el, i) => (
         <div
           key={`balloon-${el.id}`}
-          className="floating-element animate-balloon-float"
+          className="floating-element animate-balloon-float-enhanced"
           style={{
             left: `${el.x}%`,
             animationDelay: `${el.delay}s`,
@@ -72,55 +72,77 @@ const BirthdayAnimation = ({ elements }: { elements: FloatingElement[] }) => {
         >
           <div className="relative">
             <div 
-              className="balloon-shape"
+              className="balloon-shape-enhanced"
               style={{ 
                 backgroundColor: balloonColors[i % balloonColors.length],
-                width: el.size * 1.5,
-                height: el.size * 1.8,
+                width: el.size * 1.8,
+                height: el.size * 2.2,
               }}
-            />
+            >
+              <div className="balloon-highlight" />
+            </div>
             <div 
-              className="balloon-string"
-              style={{ height: el.size * 0.8 }}
+              className="balloon-string-enhanced"
+              style={{ height: el.size * 1.2 }}
             />
           </div>
         </div>
       ))}
       
-      {/* Confetti burst */}
-      {elements.slice(6, 20).map((el) => (
+      {/* Enhanced confetti burst with multiple colors */}
+      {elements.slice(8, 25).map((el, i) => (
         <div
           key={`confetti-${el.id}`}
-          className="confetti-piece animate-confetti-burst"
+          className="confetti-piece animate-confetti-burst-enhanced"
           style={{
             left: `${el.x}%`,
             animationDelay: `${el.delay}s`,
-            backgroundColor: balloonColors[el.id % balloonColors.length],
+            backgroundColor: balloonColors[i % balloonColors.length],
+            transform: `rotate(${el.delay * 90}deg)`,
           }}
         />
       ))}
       
-      {/* Party poppers */}
+      {/* Multiple party poppers with staggered timing */}
       <PartyPopper 
-        className="absolute top-[10%] left-[5%] text-accent animate-bounce-pop" 
-        style={{ width: 32, height: 32, animationDelay: "0.5s" }}
+        className="absolute top-[8%] left-[3%] text-accent animate-bounce-pop-enhanced" 
+        style={{ width: 36, height: 36, animationDelay: "0.3s" }}
       />
       <PartyPopper 
-        className="absolute top-[15%] right-[8%] text-primary animate-bounce-pop scale-x-[-1]" 
-        style={{ width: 28, height: 28, animationDelay: "1s" }}
+        className="absolute top-[12%] right-[5%] text-primary animate-bounce-pop-enhanced scale-x-[-1]" 
+        style={{ width: 32, height: 32, animationDelay: "0.8s" }}
       />
+      <PartyPopper 
+        className="absolute bottom-[15%] left-[8%] text-accent animate-bounce-pop-enhanced" 
+        style={{ width: 28, height: 28, animationDelay: "1.2s" }}
+      />
+      
+      {/* Birthday sparkles */}
+      <div className="birthday-sparkles">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div
+            key={`sparkle-${i}`}
+            className="birthday-sparkle animate-birthday-sparkle"
+            style={{
+              left: `${10 + i * 7}%`,
+              top: `${20 + (i % 3) * 20}%`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 };
 
-// Love Theme - Floating hearts, rose petals, soft glows
+// Love Theme - Enhanced floating hearts, rose petals, soft glows
 const LoveAnimation = ({ elements }: { elements: FloatingElement[] }) => (
   <div className="theme-animation-container">
-    {/* Floating hearts */}
-    {elements.slice(0, 12).map((el) => (
+    {/* Enhanced floating hearts with pulse effect */}
+    {elements.slice(0, 15).map((el) => (
       <div
         key={`heart-${el.id}`}
-        className="floating-element animate-heart-rise"
+        className="floating-element animate-heart-rise-enhanced"
         style={{
           left: `${el.x}%`,
           animationDelay: `${el.delay}s`,
@@ -128,21 +150,22 @@ const LoveAnimation = ({ elements }: { elements: FloatingElement[] }) => (
         }}
       >
         <Heart 
-          className="text-primary fill-primary/50"
+          className="text-primary fill-primary/60 animate-heart-pulse-gentle"
           style={{ 
             width: el.size, 
             height: el.size,
             opacity: el.opacity,
+            animationDelay: `${el.delay * 0.5}s`,
           }}
         />
       </div>
     ))}
     
-    {/* Rose petals */}
-    {elements.slice(12, 20).map((el) => (
+    {/* Enhanced rose petals with swirl motion */}
+    {elements.slice(15, 25).map((el) => (
       <div
         key={`petal-${el.id}`}
-        className="floating-element animate-petal-fall"
+        className="floating-element animate-petal-fall-enhanced"
         style={{
           left: `${el.x}%`,
           animationDelay: `${el.delay + 1}s`,
@@ -150,7 +173,7 @@ const LoveAnimation = ({ elements }: { elements: FloatingElement[] }) => (
         }}
       >
         <div 
-          className="rose-petal"
+          className="rose-petal-enhanced"
           style={{ 
             width: el.size * 0.6, 
             height: el.size * 0.8,
@@ -159,58 +182,91 @@ const LoveAnimation = ({ elements }: { elements: FloatingElement[] }) => (
       </div>
     ))}
     
-    {/* Soft glow orbs */}
-    <div className="glow-orb glow-orb-1" />
-    <div className="glow-orb glow-orb-2" />
+    {/* Enhanced glow orbs with breathing effect */}
+    <div className="glow-orb glow-orb-1 animate-love-glow" />
+    <div className="glow-orb glow-orb-2 animate-love-glow" style={{ animationDelay: "2s" }} />
+    <div className="glow-orb glow-orb-3 animate-love-glow" style={{ animationDelay: "4s" }} />
+    
+    {/* Romantic sparkles */}
+    <div className="love-sparkles">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={`love-sparkle-${i}`}
+          className="love-sparkle animate-love-sparkle"
+          style={{
+            left: `${15 + i * 10}%`,
+            top: `${10 + (i % 4) * 20}%`,
+            animationDelay: `${i * 0.3}s`,
+          }}
+        />
+      ))}
+    </div>
   </div>
 );
 
-// Celebration Theme - Confetti bursts, fireworks, dynamic motion
+// Celebration Theme - Enhanced confetti bursts, fireworks, dynamic motion
 const CelebrationAnimation = ({ elements }: { elements: FloatingElement[] }) => {
-  const colors = ["#FFD700", "#FF6B6B", "#4ECDC4", "#FF69B4", "#9370DB"];
+  const colors = ["#FFD700", "#FF6B6B", "#4ECDC4", "#FF69B4", "#9370DB", "#00CED1", "#F38181"];
   
   return (
     <div className="theme-animation-container">
-      {/* Star bursts */}
-      {elements.slice(0, 10).map((el, i) => (
+      {/* Enhanced star bursts with rotation */}
+      {elements.slice(0, 12).map((el, i) => (
         <div
           key={`star-${el.id}`}
-          className="floating-element animate-star-burst"
+          className="floating-element animate-star-burst-enhanced"
           style={{
             left: `${el.x}%`,
-            top: `${20 + (i * 8)}%`,
+            top: `${15 + (i * 6)}%`,
             animationDelay: `${el.delay}s`,
           }}
         >
           <Star 
-            className="fill-current"
+            className="fill-current animate-star-spin"
             style={{ 
               width: el.size, 
               height: el.size,
               color: colors[i % colors.length],
+              animationDelay: `${el.delay * 0.5}s`,
             }}
           />
         </div>
       ))}
       
-      {/* Confetti rain */}
-      {elements.slice(10, 25).map((el, i) => (
+      {/* Enhanced confetti rain with physics */}
+      {elements.slice(12, 30).map((el, i) => (
         <div
           key={`confetti-${el.id}`}
-          className="confetti-piece animate-confetti-fall"
+          className="confetti-piece animate-confetti-fall-enhanced"
           style={{
             left: `${el.x}%`,
-            animationDelay: `${el.delay * 0.5}s`,
+            animationDelay: `${el.delay * 0.3}s`,
             backgroundColor: colors[i % colors.length],
             transform: `rotate(${el.delay * 45}deg)`,
           }}
         />
       ))}
       
-      {/* Firework sparkles */}
-      <div className="firework firework-1" />
-      <div className="firework firework-2" />
-      <div className="firework firework-3" />
+      {/* Enhanced firework sparkles */}
+      <div className="firework firework-1 animate-firework-burst" />
+      <div className="firework firework-2 animate-firework-burst" style={{ animationDelay: "1s" }} />
+      <div className="firework firework-3 animate-firework-burst" style={{ animationDelay: "2s" }} />
+      <div className="firework firework-4 animate-firework-burst" style={{ animationDelay: "0.5s" }} />
+      
+      {/* Celebration streamers */}
+      <div className="celebration-streamers">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={`streamer-${i}`}
+            className="celebration-streamer animate-streamer-wave"
+            style={{
+              left: `${10 + i * 15}%`,
+              backgroundColor: colors[i % colors.length],
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 };

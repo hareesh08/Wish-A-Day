@@ -321,8 +321,372 @@
 }
 
 /* =====================================================
-   BIRTHDAY THEME - Fun & Playful
+   ENHANCED BIRTHDAY THEME ANIMATIONS
    ===================================================== */
+
+@keyframes balloon-float-enhanced {
+  0% { 
+    transform: translateY(120vh) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  5% { opacity: 1; }
+  50% { 
+    transform: translateY(50vh) rotate(-8deg) scale(1.1);
+  }
+  100% { 
+    transform: translateY(-30vh) rotate(-15deg) scale(1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes bounce-pop-enhanced {
+  0%, 100% { 
+    transform: scale(1) rotate(-8deg);
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  25% { 
+    transform: scale(1.2) rotate(8deg);
+    filter: drop-shadow(0 0 15px currentColor);
+  }
+  50% { 
+    transform: scale(1.1) rotate(-5deg);
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+  75% { 
+    transform: scale(1.15) rotate(5deg);
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
+@keyframes confetti-burst-enhanced {
+  0% { 
+    transform: translateY(-10vh) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  10% { 
+    transform: translateY(10vh) rotate(180deg) scale(1.2);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(120vh) rotate(1080deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes birthday-sparkle {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.5) rotate(180deg);
+  }
+}
+
+.animate-balloon-float-enhanced {
+  animation: balloon-float-enhanced 10s ease-out infinite;
+}
+
+.animate-bounce-pop-enhanced {
+  animation: bounce-pop-enhanced 1.8s ease-in-out infinite;
+}
+
+.animate-confetti-burst-enhanced {
+  animation: confetti-burst-enhanced 5s ease-in infinite;
+}
+
+.animate-birthday-sparkle {
+  animation: birthday-sparkle 2s ease-in-out infinite;
+}
+
+.balloon-shape-enhanced {
+  @apply rounded-full relative;
+  background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 60%);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.balloon-highlight {
+  @apply absolute top-2 left-2 rounded-full;
+  width: 30%;
+  height: 30%;
+  background: rgba(255,255,255,0.7);
+}
+
+.balloon-string-enhanced {
+  @apply absolute left-1/2 -translate-x-1/2;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1));
+  top: 100%;
+  animation: string-sway 3s ease-in-out infinite;
+}
+
+@keyframes string-sway {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(5deg); }
+}
+
+.birthday-sparkles {
+  @apply absolute inset-0 pointer-events-none;
+}
+
+.birthday-sparkle {
+  @apply absolute rounded-full;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #FFD700, #FFA500);
+}
+
+/* =====================================================
+   ENHANCED LOVE THEME ANIMATIONS
+   ===================================================== */
+
+@keyframes heart-rise-enhanced {
+  0% { 
+    transform: translateY(110vh) scale(0.3) rotate(-20deg);
+    opacity: 0;
+  }
+  10% { 
+    opacity: 0.8;
+    transform: translateY(90vh) scale(0.6) rotate(-10deg);
+  }
+  50% { 
+    transform: translateY(50vh) scale(1.1) rotate(5deg);
+  }
+  90% { 
+    opacity: 0.8;
+    transform: translateY(10vh) scale(0.9) rotate(10deg);
+  }
+  100% { 
+    transform: translateY(-20vh) scale(0.7) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes heart-pulse-gentle {
+  0%, 100% { 
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  50% { 
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 15px currentColor);
+  }
+}
+
+@keyframes petal-fall-enhanced {
+  0% { 
+    transform: translateY(-15vh) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  10% { 
+    opacity: 0.8;
+    transform: translateY(0vh) rotate(90deg) translateX(10px);
+  }
+  50% { 
+    transform: translateY(50vh) rotate(270deg) translateX(-20px);
+  }
+  100% { 
+    transform: translateY(120vh) rotate(540deg) translateX(30px);
+    opacity: 0;
+  }
+}
+
+@keyframes love-glow {
+  0%, 100% { 
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% { 
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes love-sparkle {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  25% { 
+    opacity: 0.8;
+    transform: scale(1) rotate(90deg);
+  }
+  75% { 
+    opacity: 0.8;
+    transform: scale(1.2) rotate(270deg);
+  }
+}
+
+.animate-heart-rise-enhanced {
+  animation: heart-rise-enhanced 12s ease-in-out infinite;
+}
+
+.animate-heart-pulse-gentle {
+  animation: heart-pulse-gentle 3s ease-in-out infinite;
+}
+
+.animate-petal-fall-enhanced {
+  animation: petal-fall-enhanced 15s ease-in-out infinite;
+}
+
+.animate-love-glow {
+  animation: love-glow 6s ease-in-out infinite;
+}
+
+.animate-love-sparkle {
+  animation: love-sparkle 4s ease-in-out infinite;
+}
+
+.rose-petal-enhanced {
+  @apply rounded-full;
+  background: linear-gradient(135deg, #ff6b8a, #ff8fa3, #ffb3c1);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 8px rgba(255, 107, 138, 0.3);
+}
+
+.glow-orb-3 {
+  @apply absolute rounded-full;
+  background: radial-gradient(circle, hsl(var(--theme-love-from) / 0.4), transparent);
+  filter: blur(50px);
+  width: 120px;
+  height: 120px;
+  top: 60%;
+  left: 70%;
+}
+
+.love-sparkles {
+  @apply absolute inset-0 pointer-events-none;
+}
+
+.love-sparkle {
+  @apply absolute rounded-full;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #ff6b8a, #ff8fa3);
+}
+
+/* =====================================================
+   ENHANCED CELEBRATION THEME ANIMATIONS
+   ===================================================== */
+
+@keyframes star-burst-enhanced {
+  0% { 
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+    filter: drop-shadow(0 0 0px currentColor);
+  }
+  30% { 
+    transform: scale(1.5) rotate(180deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+  70% { 
+    transform: scale(1.2) rotate(360deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 15px currentColor);
+  }
+  100% { 
+    transform: scale(0.8) rotate(540deg);
+    opacity: 0;
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+}
+
+@keyframes star-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes confetti-fall-enhanced {
+  0% { 
+    transform: translateY(-15vh) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  25% { 
+    transform: translateY(25vh) rotate(180deg) translateX(20px);
+  }
+  50% { 
+    transform: translateY(50vh) rotate(360deg) translateX(-10px);
+  }
+  75% { 
+    transform: translateY(75vh) rotate(540deg) translateX(15px);
+  }
+  100% { 
+    transform: translateY(120vh) rotate(720deg) translateX(-5px);
+    opacity: 0;
+  }
+}
+
+@keyframes firework-burst {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes streamer-wave {
+  0%, 100% { 
+    transform: rotate(0deg) scaleY(1);
+  }
+  25% { 
+    transform: rotate(15deg) scaleY(1.2);
+  }
+  75% { 
+    transform: rotate(-15deg) scaleY(0.8);
+  }
+}
+
+.animate-star-burst-enhanced {
+  animation: star-burst-enhanced 4s ease-in-out infinite;
+}
+
+.animate-star-spin {
+  animation: star-spin 8s linear infinite;
+}
+
+.animate-confetti-fall-enhanced {
+  animation: confetti-fall-enhanced 6s ease-in infinite;
+}
+
+.animate-firework-burst {
+  animation: firework-burst 3s ease-out infinite;
+}
+
+.animate-streamer-wave {
+  animation: streamer-wave 4s ease-in-out infinite;
+}
+
+.firework-4 {
+  @apply absolute rounded-full;
+  width: 4px;
+  height: 4px;
+  background: hsl(var(--accent));
+  top: 35%;
+  right: 15%;
+  box-shadow: 
+    25px -25px 0 #FF69B4,
+    -25px -25px 0 #00CED1,
+    25px 25px 0 #FFD700,
+    -25px 25px 0 #9370DB;
+}
+
+.celebration-streamers {
+  @apply absolute inset-0 pointer-events-none;
+}
+
+.celebration-streamer {
+  @apply absolute;
+  width: 4px;
+  height: 80px;
+  top: 0;
+  border-radius: 2px;
+  transform-origin: top center;
+}
 
 @keyframes balloon-float {
   0% { 
@@ -1139,6 +1503,166 @@
 /* =====================================================
    UI ENHANCEMENT ANIMATIONS
    ===================================================== */
+
+@keyframes corner-entrance {
+  0% { 
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% { 
+    transform: scale(1.2) rotate(10deg);
+    opacity: 0.3;
+  }
+  100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 0.25;
+  }
+}
+
+@keyframes corner-glow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  50% { 
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+}
+
+.animate-corner-entrance {
+  animation: corner-entrance 1.2s ease-out forwards;
+}
+
+/* =====================================================
+   ENHANCED LOADING AND ENTRANCE ANIMATIONS
+   ===================================================== */
+
+@keyframes gradient-shift {
+  0%, 100% { 
+    background-position: 0% 50%;
+  }
+  50% { 
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes loading-sparkle {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+@keyframes loading-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px hsl(var(--primary) / 0);
+  }
+}
+
+@keyframes loading-text {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes loading-dots {
+  0%, 100% { 
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% { 
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes background-pulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.12; }
+}
+
+@keyframes ambient-float {
+  0%, 100% { 
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.2;
+  }
+  25% { 
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-10px) translateX(-5px);
+    opacity: 0.4;
+  }
+  75% { 
+    transform: translateY(-30px) translateX(15px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes wish-entrance {
+  0% { 
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  60% { 
+    opacity: 1;
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% { 
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+.animate-loading-sparkle {
+  animation: loading-sparkle 2s ease-in-out infinite;
+}
+
+.animate-loading-pulse {
+  animation: loading-pulse 2s ease-in-out infinite;
+}
+
+.animate-loading-text {
+  animation: loading-text 2s ease-in-out infinite;
+}
+
+.animate-loading-dots {
+  animation: loading-dots 1.5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-background-pulse {
+  animation: background-pulse 4s ease-in-out infinite;
+}
+
+.animate-ambient-float {
+  animation: ambient-float 12s ease-in-out infinite;
+}
+
+.animate-wish-entrance {
+  animation: wish-entrance 1.2s ease-out forwards;
+}
 
 @keyframes icon-entrance {
   0% { 
