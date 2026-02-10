@@ -16,7 +16,7 @@ interface SocialSharePanelProps {
   siteName?: string;
 }
 
-const PORTFOLIO_URL = 'https://wishday.app';
+const PORTFOLIO_URL = 'https://wishaday.hareeshworks.in';
 const SITE_NAME = 'WishDay';
 const PROMO_TEXT = `✨ Made with love on ${SITE_NAME} — Create your own magical wishes!`;
 

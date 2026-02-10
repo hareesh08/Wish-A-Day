@@ -38,7 +38,10 @@ const THEME_COLORS: Record<WishTheme, string[]> = {
 };
 
 const generateParticles = (count: number, colors: string[]): Particle[] => {
-  return Array.from({ length: count }, (_, i) => ({
+  const isMobile = window.innerWidth < 768;
+  const actualCount = isMobile ? Math.floor(count * 0.5) : count; // 50% fewer on mobile
+  
+  return Array.from({ length: actualCount }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -51,22 +54,28 @@ const generateParticles = (count: number, colors: string[]): Particle[] => {
 };
 
 // =====================================================
-// BIRTHDAY CINEMATIC - Balloons, Confetti, Cake, Fireworks
+// BIRTHDAY CINEMATIC - Balloons, Confetti, Cake, Fireworks - OPTIMIZED
 // =====================================================
-const BirthdayCinematic = ({ particles }: { particles: Particle[] }) => (
+const BirthdayCinematic = ({ particles }: { particles: Particle[] }) => {
+  const isMobile = window.innerWidth < 768;
+  const balloonCount = isMobile ? 5 : 8;
+  const confettiCount = isMobile ? 15 : 27;
+  
+  return (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
     {/* Cinematic gradient overlay */}
     <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-pink-500/10 animate-gradient-pulse" />
     
     {/* 3D Balloons */}
-    {particles.slice(0, 8).map((p, i) => (
+    {particles.slice(0, balloonCount).map((p, i) => (
       <div
         key={`balloon-${i}`}
         className="absolute bottom-0 animate-cinematic-balloon-rise"
         style={{
-          left: `${8 + i * 11}%`,
+          left: `${8 + i * (84 / balloonCount)}%`,
           animationDelay: `${i * 0.4}s`,
           animationDuration: `${10 + i}s`,
+          willChange: "transform",
         }}
       >
         <div className="relative">
@@ -90,11 +99,11 @@ const BirthdayCinematic = ({ particles }: { particles: Particle[] }) => (
     ))}
 
     {/* Confetti rain */}
-    {particles.slice(8, 35).map((p) => (
+    {particles.slice(balloonCount, balloonCount + confettiCount).map((p) => (
       <div
         key={`confetti-${p.id}`}
         className="absolute animate-cinematic-confetti-fall"
-        style={{ left: `${p.x}%`, animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s` }}
+        style={{ left: `${p.x}%`, animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s`, willChange: "transform" }}
       >
         <div
           className="animate-confetti-spin"
@@ -119,18 +128,18 @@ const BirthdayCinematic = ({ particles }: { particles: Particle[] }) => (
       <Sparkles className="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-5 text-yellow-400 animate-sparkle-pulse" />
     </div>
 
-    {/* Sparkle overlay */}
-    {Array.from({ length: 15 }).map((_, i) => (
+    {/* Sparkle overlay - reduced count */}
+    {!isMobile && Array.from({ length: 10 }).map((_, i) => (
       <div
         key={`sparkle-${i}`}
         className="absolute animate-birthday-sparkle"
-        style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 4) * 20}%`, animationDelay: `${i * 0.2}s` }}
+        style={{ left: `${5 + i * 9}%`, top: `${10 + (i % 4) * 20}%`, animationDelay: `${i * 0.2}s` }}
       >
         <div className="w-1.5 h-1.5 bg-white rounded-full" style={{ boxShadow: "0 0 6px #FFD700, 0 0 12px #FFD700" }} />
       </div>
     ))}
   </div>
-);
+);};
 
 // =====================================================
 // LOVE CINEMATIC - Floating Hearts, Rose Petals, Romantic Glow

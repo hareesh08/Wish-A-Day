@@ -67,7 +67,7 @@ WISHADAY_PORT="${WISHADAY_PORT:-8000}"
 WISHADAY_DOMAIN="${WISHADAY_DOMAIN:-wishaday.hareeshworks.in}"
 WISHADAY_USER="${WISHADAY_USER:-wishaday}"
 WISHADAY_GROUP="${WISHADAY_GROUP:-wishaday}"
-GIT_REPO="${GIT_REPO:-}"
+GIT_REPO="${GIT_REPO:-https://github.com/hareesh08/Wish-A-Day.git}"
 NODE_VERSION="${NODE_VERSION:-20}"
 
 # Logging functions

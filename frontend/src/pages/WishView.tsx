@@ -105,14 +105,14 @@ const WishView = () => {
         {/* Animated background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 animate-gradient-shift" />
         
-        {/* Loading sparkles */}
+        {/* Loading sparkles - reduced count */}
         <div className="absolute inset-0">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
               className="absolute animate-loading-sparkle"
               style={{
-                left: `${10 + i * 8}%`,
+                left: `${10 + i * 11}%`,
                 top: `${20 + (i % 3) * 20}%`,
                 animationDelay: `${i * 0.2}s`,
               }}
@@ -245,9 +245,9 @@ const WishView = () => {
       {/* Enhanced theme background with animation */}
       <div className="absolute inset-0 theme-gradient opacity-8 animate-background-pulse" />
       
-      {/* Ambient theme particles */}
+      {/* Ambient theme particles - reduced count */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 15 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
             className="absolute animate-ambient-float"
@@ -256,6 +256,7 @@ const WishView = () => {
               top: `${Math.random() * 100}%`,
               animationDelay: `${i * 0.3}s`,
               animationDuration: `${8 + Math.random() * 4}s`,
+              willChange: "transform",
             }}
           >
             <div 

@@ -114,10 +114,10 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
         />
       </div>
 
-      {/* Parallax depth layers */}
+      {/* Parallax depth layers - reduced count */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Far layer - slow movement */}
-        {Array.from({ length: 30 }).map((_, i) => (
+        {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={`far-${i}`}
             className="absolute animate-twinkle-slow"
@@ -126,6 +126,7 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
               top: `${Math.random() * 100}%`,
               transform: `translate(${parallaxX * 0.3}px, ${parallaxY * 0.3}px)`,
               animationDelay: `${Math.random() * 5}s`,
+              willChange: "opacity",
             }}
           >
             <div 
@@ -139,7 +140,7 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
         ))}
 
         {/* Mid layer - medium movement */}
-        {Array.from({ length: 15 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={`mid-${i}`}
             className="absolute animate-float-slow"
@@ -148,6 +149,7 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
               top: `${Math.random() * 100}%`,
               transform: `translate(${parallaxX * 0.6}px, ${parallaxY * 0.6}px)`,
               animationDelay: `${Math.random() * 3}s`,
+              willChange: "transform",
             }}
           >
             <div 
@@ -339,12 +341,12 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
         )}
       </div>
 
-      {/* Celebration burst particles */}
+      {/* Celebration burst particles - reduced count */}
       {phase === "burst" && (
         <div className="absolute inset-0 pointer-events-none">
           {/* Confetti burst */}
-          {Array.from({ length: 60 }).map((_, i) => {
-            const angle = (i / 60) * 360;
+          {Array.from({ length: 40 }).map((_, i) => {
+            const angle = (i / 40) * 360;
             const distance = 100 + Math.random() * 200;
             const confettiColors = [colors.glow, colors.ribbon, colors.box, colors.accent, "#FFD700", "#FF6B6B"];
             
@@ -360,19 +362,21 @@ export function GiftBox3D({ theme, onOpenComplete, isActive }: GiftBox3DProps) {
                   "--angle": `${angle}deg`,
                   "--distance": `${distance}px`,
                   animationDelay: `${Math.random() * 0.3}s`,
+                  willChange: "transform",
                 } as React.CSSProperties}
               />
             );
           })}
 
           {/* Sparkle ring */}
-          {Array.from({ length: 16 }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={`sparkle-${i}`}
               className="absolute left-1/2 top-1/2 animate-sparkle-ring"
               style={{
-                transform: `rotate(${i * 22.5}deg) translateY(-100px)`,
+                transform: `rotate(${i * 30}deg) translateY(-100px)`,
                 animationDelay: `${i * 0.05}s`,
+                willChange: "transform, opacity",
               }}
             >
               <Sparkles 

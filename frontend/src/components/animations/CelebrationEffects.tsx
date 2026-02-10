@@ -22,12 +22,14 @@ interface AnimatedItem {
   rotation: number;
 }
 
-// Generate animated items based on celebration items
+// Generate animated items based on celebration items - OPTIMIZED
 const generateAnimatedItems = (items: CelebrationItem[]): AnimatedItem[] => {
   const animatedItems: AnimatedItem[] = [];
+  const isMobile = window.innerWidth < 768;
+  const maxItemsPerType = isMobile ? 5 : 8; // Reduced for mobile
   
   items.forEach((item) => {
-    const count = Math.min(item.quantity * 3, 15); // Limit for performance
+    const count = Math.min(item.quantity * 2, maxItemsPerType); // Reduced multiplier
     for (let i = 0; i < count; i++) {
       animatedItems.push({
         id: `${item.id}-${i}`,
@@ -268,20 +270,23 @@ const GiftEffect = ({ item }: { item: AnimatedItem }) => {
   );
 };
 
-// Confetti animation - full-screen burst with gravity
+// Confetti animation - OPTIMIZED with fewer particles
 const ConfettiEffect = ({ item }: { item: AnimatedItem }) => {
   const colors = [item.color, "#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#F38181"];
+  const isMobile = window.innerWidth < 768;
+  const particleCount = isMobile ? 4 : 6; // Reduced from 8
   
   return (
     <>
-      {Array.from({ length: 8 }).map((_, i) => (
+      {Array.from({ length: particleCount }).map((_, i) => (
         <div
           key={`${item.id}-confetti-${i}`}
           className="absolute animate-confetti-gravity"
           style={{
-            left: `${item.x + (i - 4) * 5}%`,
+            left: `${item.x + (i - particleCount/2) * 5}%`,
             animationDelay: `${item.delay + i * 0.1}s`,
             animationDuration: `${3 + Math.random() * 2}s`,
+            willChange: "transform",
           }}
         >
           <div 

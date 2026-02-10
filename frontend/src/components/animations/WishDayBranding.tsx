@@ -104,7 +104,7 @@ export function ShareCardBranding({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-white">WishDay</span>
-            <span className="text-[10px] text-white/60">wishday.app</span>
+            <span className="text-[10px] text-white/60">wishaday.hareeshworks.in</span>
           </div>
         </div>
         <span className="text-xs text-white/50">Create your own wish ✨</span>

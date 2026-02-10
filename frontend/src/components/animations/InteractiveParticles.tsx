@@ -29,22 +29,22 @@ const themeParticleConfig: Record<WishTheme, {
   colors: string[];
   burstSize: number;
 }> = {
-  default: { types: ["sparkle", "confetti"], colors: ["#FFD700", "#FF6B6B", "#4ECDC4"], burstSize: 12 },
-  birthday: { types: ["confetti", "star", "sparkle"], colors: ["#FF69B4", "#4ECDC4", "#FFE66D", "#95E1D3"], burstSize: 20 },
-  love: { types: ["heart", "sparkle"], colors: ["#FF1744", "#FF6B6B", "#FFB6C1"], burstSize: 15 },
-  celebration: { types: ["confetti", "star", "sparkle"], colors: ["#FFD700", "#FF6B6B", "#4ECDC4", "#9B59B6"], burstSize: 25 },
-  wedding: { types: ["flower", "sparkle", "heart"], colors: ["#FFB6C1", "#FFF0F5", "#FFD700", "#FFFFFF"], burstSize: 12 },
-  valentine: { types: ["heart", "sparkle"], colors: ["#FF1744", "#FFB6C1", "#FF69B4"], burstSize: 18 },
-  congratulations: { types: ["confetti", "star"], colors: ["#FFD700", "#FFA500", "#FF6B6B"], burstSize: 20 },
-  appreciation: { types: ["sparkle", "flower"], colors: ["#4CAF50", "#81C784", "#FFD700"], burstSize: 12 },
-  festival: { types: ["confetti", "star", "sparkle"], colors: ["#9C27B0", "#E91E63", "#FFD700", "#00BCD4"], burstSize: 22 },
-  event: { types: ["confetti", "star"], colors: ["#2196F3", "#3F51B5", "#FFD700"], burstSize: 15 },
+  default: { types: ["sparkle", "confetti"], colors: ["#FFD700", "#FF6B6B", "#4ECDC4"], burstSize: 8 },
+  birthday: { types: ["confetti", "star", "sparkle"], colors: ["#FF69B4", "#4ECDC4", "#FFE66D", "#95E1D3"], burstSize: 12 },
+  love: { types: ["heart", "sparkle"], colors: ["#FF1744", "#FF6B6B", "#FFB6C1"], burstSize: 10 },
+  celebration: { types: ["confetti", "star", "sparkle"], colors: ["#FFD700", "#FF6B6B", "#4ECDC4", "#9B59B6"], burstSize: 15 },
+  wedding: { types: ["flower", "sparkle", "heart"], colors: ["#FFB6C1", "#FFF0F5", "#FFD700", "#FFFFFF"], burstSize: 8 },
+  valentine: { types: ["heart", "sparkle"], colors: ["#FF1744", "#FFB6C1", "#FF69B4"], burstSize: 12 },
+  congratulations: { types: ["confetti", "star"], colors: ["#FFD700", "#FFA500", "#FF6B6B"], burstSize: 12 },
+  appreciation: { types: ["sparkle", "flower"], colors: ["#4CAF50", "#81C784", "#FFD700"], burstSize: 8 },
+  festival: { types: ["confetti", "star", "sparkle"], colors: ["#9C27B0", "#E91E63", "#FFD700", "#00BCD4"], burstSize: 14 },
+  event: { types: ["confetti", "star"], colors: ["#2196F3", "#3F51B5", "#FFD700"], burstSize: 10 },
 };
 
 export function InteractiveParticles({ 
   theme, 
   isActive, 
-  maxParticles = 100 
+  maxParticles = 60 // Reduced from 100
 }: InteractiveParticlesProps) {
   const [particles, setParticles] = useState<Particle[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -232,7 +232,7 @@ interface AmbientParticlesProps {
   density?: number;
 }
 
-export function AmbientParticles({ theme, density = 20 }: AmbientParticlesProps) {
+export function AmbientParticles({ theme, density = 12 }: AmbientParticlesProps) { // Reduced from 20
   const config = themeParticleConfig[theme];
 
   return (

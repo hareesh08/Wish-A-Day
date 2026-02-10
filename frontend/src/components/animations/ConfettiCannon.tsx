@@ -52,8 +52,10 @@ export const ConfettiCannon = ({ theme, trigger, onComplete }: ConfettiCannonPro
   const fireConfetti = useCallback((originX: number, originY: number, angle: number) => {
     const colors = themeColors[theme] || themeColors.default;
     const pieces: ConfettiPiece[] = [];
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? 15 : 25; // Reduced from 30
     
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < count; i++) {
       const spreadAngle = angle + (Math.random() - 0.5) * 60;
       const velocity = 15 + Math.random() * 10;
       const radians = (spreadAngle * Math.PI) / 180;
