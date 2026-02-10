@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, Sparkles, HeartCrack, Ghost } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CelebrationItem } from "@/components/CelebrationItems";
 import { WishCard } from "@/components/WishCard";
 import { WishTheme } from "@/components/ThemeSelector";
-import { GiftBoxOpener } from "@/components/animations";
+import { MusicToggle } from "@/components/MusicToggle";
+import { 
+  GiftBox3D, 
+  CinematicThemeEffects, 
+  InteractiveParticles,
+  AuroraBackground,
+  ThemeVideoBackground,
+  WishDayBranding,
+  SocialSharePanel
+} from "@/components/animations";
 import { getWish, Wish } from "@/services/api";
+import { useOGMeta } from "@/hooks/useOGMeta";
+import { useThemeMusic } from "@/hooks/useThemeMusic";
 import { cn } from "@/lib/utils";
 
 type WishState = 
@@ -34,6 +45,20 @@ const WishView = () => {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [showGiftBox, setShowGiftBox] = useState(false);
   const [giftBoxComplete, setGiftBoxComplete] = useState(false);
+  const wishCardRef = useRef<HTMLDivElement>(null);
+
+  const wishData = state.status === "success" ? state.wish : null;
+  const currentTheme = (wishData?.theme || "default") as WishTheme;
+
+  // Dynamic OG meta tags
+  useOGMeta({
+    title: wishData ? `${wishData.title} ✨ WishDay` : undefined,
+    description: wishData ? `Someone made a special wish: "${wishData.title}". Open to see the magic!` : undefined,
+    url: window.location.href,
+  });
+
+  // Theme-based background music
+  const { isMuted, volume, toggleMute, changeVolume } = useThemeMusic(currentTheme, giftBoxComplete);
 
   useEffect(() => {
     if (!slug) {
@@ -186,13 +211,35 @@ const WishView = () => {
 
   return (
     <div className={`min-h-screen theme-${wish.theme} relative overflow-hidden`}>
-      {/* Gift Box Opener - shows first */}
+      {/* Theme-specific video background */}
+      <ThemeVideoBackground 
+        theme={wish.theme as WishTheme} 
+        isActive={giftBoxComplete} 
+      />
+
+      {/* Aurora background for all themes */}
+      <AuroraBackground theme={wish.theme as WishTheme} intensity="subtle" />
+
+      {/* 3D Gift Box Opener - shows first */}
       {showGiftBox && !giftBoxComplete && (
-        <GiftBoxOpener
+        <GiftBox3D
           theme={wish.theme as WishTheme}
           onOpenComplete={handleGiftBoxComplete}
           isActive={showGiftBox}
         />
+      )}
+
+      {/* Interactive particle system - tap anywhere for magic */}
+      {giftBoxComplete && (
+        <InteractiveParticles 
+          theme={wish.theme as WishTheme} 
+          isActive={giftBoxComplete} 
+        />
+      )}
+
+      {/* Cinematic Theme Animation for all themes */}
+      {giftBoxComplete && (
+        <CinematicThemeEffects theme={wish.theme as WishTheme} isActive={giftBoxComplete} />
       )}
 
       {/* Enhanced theme background with animation */}
@@ -222,11 +269,30 @@ const WishView = () => {
       </div>
       
       <div className="relative z-10 min-h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center py-12 px-4">
+        {/* Share controls and music toggle at top */}
+        {giftBoxComplete && pageLoaded && (
           <div className={cn(
-            "w-full max-w-2xl transition-all duration-1000",
-            pageLoaded && giftBoxComplete ? "animate-wish-entrance" : "opacity-0 scale-90 translate-y-8"
+            "fixed top-4 left-1/2 -translate-x-1/2 z-50",
+            "flex items-center gap-2",
+            "animate-fade-in"
           )}>
+            <MusicToggle isMuted={isMuted} onToggle={toggleMute} volume={volume} onVolumeChange={changeVolume} />
+            <SocialSharePanel 
+              targetRef={wishCardRef}
+              fileName={`wishday-${wish.slug || 'wish'}`}
+              wishUrl={window.location.href}
+            />
+          </div>
+        )}
+
+        <div className="flex-1 flex items-center justify-center py-16 px-4">
+          <div 
+            ref={wishCardRef}
+            className={cn(
+              "w-full max-w-2xl transition-all duration-1000",
+              pageLoaded && giftBoxComplete ? "animate-wish-entrance" : "opacity-0 scale-90 translate-y-8"
+            )}
+          >
             {giftBoxComplete && (
               <WishCard
                 title={wish.title}
@@ -256,6 +322,9 @@ const WishView = () => {
           </Link>
         </footer>
       </div>
+
+      {/* WishDay Branding Watermark */}
+      {giftBoxComplete && <WishDayBranding variant="watermark" />}
     </div>
   );
 };

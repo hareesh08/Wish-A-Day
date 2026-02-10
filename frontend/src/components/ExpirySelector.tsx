@@ -42,7 +42,7 @@ export function ExpirySelector({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
         {options.map((option) => {
           const Icon = option.icon;
@@ -55,21 +55,25 @@ export function ExpirySelector({
                 onExpiryTypeChange(option.value);
               }}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
+                "group flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200",
                 isSelected
-                  ? "border-primary bg-primary/5 shadow-soft"
-                  : "border-border hover:border-primary/30 hover:bg-secondary/50"
+                  ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                  : "border-border hover:border-primary/30 hover:bg-secondary/30"
               )}
             >
-              <Icon
+              <div
                 className={cn(
-                  "w-5 h-5 transition-colors",
-                  isSelected ? "text-primary" : "text-muted-foreground"
+                  "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200",
+                  isSelected 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground group-hover:bg-secondary"
                 )}
-              />
+              >
+                <Icon className="w-4 h-4" />
+              </div>
               <span
                 className={cn(
-                  "text-xs font-medium text-center transition-colors",
+                  "text-sm font-medium transition-colors",
                   isSelected ? "text-foreground" : "text-muted-foreground"
                 )}
               >
@@ -81,17 +85,18 @@ export function ExpirySelector({
       </div>
 
       {expiryType === "time" && (
-        <div className="animate-slide-up">
+        <div className="animate-fade-in p-3 rounded-xl bg-secondary/30 border border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">When should this wish expire?</p>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal h-11",
                   !expiresAt && "text-muted-foreground"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                 {expiresAt ? format(expiresAt, "PPP") : "Pick an expiry date"}
               </Button>
             </PopoverTrigger>
@@ -110,20 +115,22 @@ export function ExpirySelector({
       )}
 
       {expiryType === "views" && (
-        <div className="animate-slide-up">
+        <div className="animate-fade-in p-3 rounded-xl bg-secondary/30 border border-border/50">
+          <p className="text-xs text-muted-foreground mb-2">How many times can this be viewed?</p>
           <Select
             value={maxViews?.toString() || ""}
             onValueChange={(val) => onMaxViewsChange(parseInt(val))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue placeholder="Select max views" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">1 view</SelectItem>
+              <SelectItem value="1">1 view (one-time)</SelectItem>
               <SelectItem value="2">2 views</SelectItem>
               <SelectItem value="5">5 views</SelectItem>
               <SelectItem value="10">10 views</SelectItem>
               <SelectItem value="25">25 views</SelectItem>
+              <SelectItem value="50">50 views</SelectItem>
             </SelectContent>
           </Select>
         </div>

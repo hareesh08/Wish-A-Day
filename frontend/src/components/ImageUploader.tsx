@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ImageUploadDisclaimer } from "./ImageUploadDisclaimer";
 
 interface ImageUploaderProps {
   images: File[];
@@ -17,6 +18,13 @@ export function ImageUploader({
 }: ImageUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<FileList | null>(null);
+
+  // Check if disclaimer was already accepted in this session
+  const isDisclaimerAccepted = () => {
+    return sessionStorage.getItem("wishday-disclaimer-accepted") === "true";
+  };
 
   const validateFile = (file: File): boolean => {
     if (!file.type.startsWith("image/")) {
@@ -30,7 +38,7 @@ export function ImageUploader({
     return true;
   };
 
-  const handleFiles = useCallback(
+  const processFiles = useCallback(
     (files: FileList | null) => {
       if (!files) return;
       setError(null);
@@ -55,6 +63,35 @@ export function ImageUploader({
     },
     [images, maxImages, maxSizeMB, onImagesChange]
   );
+
+  const handleFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      
+      // Check if disclaimer already accepted
+      if (isDisclaimerAccepted()) {
+        processFiles(files);
+      } else {
+        // Store files and show disclaimer
+        setPendingFiles(files);
+        setShowDisclaimer(true);
+      }
+    },
+    [processFiles]
+  );
+
+  const handleDisclaimerAccept = () => {
+    setShowDisclaimer(false);
+    if (pendingFiles) {
+      processFiles(pendingFiles);
+      setPendingFiles(null);
+    }
+  };
+
+  const handleDisclaimerDecline = () => {
+    setShowDisclaimer(false);
+    setPendingFiles(null);
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -89,18 +126,18 @@ export function ImageUploader({
   const isDisabled = images.length >= maxImages;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
         className={cn(
-          "relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200",
-          dragActive && !isDisabled && "border-primary bg-primary/5 scale-[1.02]",
+          "relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 group",
+          dragActive && !isDisabled && "border-primary bg-primary/5 scale-[1.01]",
           isDisabled
-            ? "border-muted bg-muted/50 cursor-not-allowed"
-            : "border-border hover:border-primary/50 cursor-pointer"
+            ? "border-muted bg-muted/30 cursor-not-allowed"
+            : "border-border hover:border-primary/50 hover:bg-secondary/30 cursor-pointer"
         )}
       >
         <input
@@ -111,63 +148,87 @@ export function ImageUploader({
           disabled={isDisabled}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
         />
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-2">
           <div
             className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center transition-colors",
-              isDisabled ? "bg-muted" : "bg-primary/10"
+              "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
+              isDisabled 
+                ? "bg-muted" 
+                : "bg-primary/10 group-hover:bg-primary/20 group-hover:scale-105"
             )}
           >
             <Upload
               className={cn(
-                "w-6 h-6",
+                "w-5 h-5 transition-colors",
                 isDisabled ? "text-muted-foreground" : "text-primary"
               )}
             />
           </div>
           <div>
-            <p className="font-medium text-foreground">
-              {isDisabled ? "Maximum images reached" : "Drop images here or click to upload"}
+            <p className="font-medium text-sm text-foreground">
+              {isDisabled ? "Maximum images reached" : "Drop images or tap to upload"}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Max {maxImages} images, {maxSizeMB}MB each
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Up to {maxImages} images • {maxSizeMB}MB max each
             </p>
           </div>
         </div>
       </div>
 
       {error && (
-        <p className="text-sm text-destructive animate-fade-in">{error}</p>
+        <p className="text-sm text-destructive animate-fade-in flex items-center gap-1.5">
+          <span className="w-1 h-1 rounded-full bg-destructive" />
+          {error}
+        </p>
       )}
 
       {images.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {images.map((file, index) => (
             <div
               key={index}
-              className="relative group aspect-square rounded-xl overflow-hidden shadow-soft animate-fade-in"
+              className="relative group aspect-square rounded-lg overflow-hidden shadow-sm border border-border/50 animate-scale-in"
             >
               <img
                 src={URL.createObjectURL(file)}
                 alt={`Upload ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <button
                 type="button"
                 onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive hover:text-destructive-foreground shadow-sm"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3 h-3" />
               </button>
+              <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-background/80 backdrop-blur-sm text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                {index + 1}/{images.length}
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground text-center">
-        {images.length} / {maxImages} images
-      </p>
+      {/* Progress bar */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-300"
+            style={{ width: `${(images.length / maxImages) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-muted-foreground font-medium tabular-nums">
+          {images.length}/{maxImages}
+        </span>
+      </div>
+
+      {/* Disclaimer Dialog */}
+      <ImageUploadDisclaimer
+        isOpen={showDisclaimer}
+        onAccept={handleDisclaimerAccept}
+        onDecline={handleDisclaimerDecline}
+      />
     </div>
   );
 }

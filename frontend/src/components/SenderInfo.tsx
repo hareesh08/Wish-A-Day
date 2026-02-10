@@ -17,41 +17,42 @@ export function SenderInfo({
   onSenderMessageChange,
 }: SenderInfoProps) {
   return (
-    <div className="space-y-4 p-4 rounded-xl bg-secondary/30 border border-border">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-4 h-4 text-primary" />
-        </div>
-        <h3 className="font-medium text-foreground">From You (optional)</h3>
+    <div className="space-y-3">
+      {/* Sender Name */}
+      <div className="space-y-1.5">
+        <label htmlFor="sender-name" className="text-sm font-medium text-foreground">
+          Your name
+        </label>
+        <Input
+          id="sender-name"
+          placeholder="e.g., Sarah, Your Friend, Mom & Dad"
+          value={senderName}
+          onChange={(e) => onSenderNameChange(e.target.value)}
+          maxLength={100}
+          className="h-11"
+        />
       </div>
-      
-      <div className="space-y-4">
-        {/* Sender Name */}
-        <div className="space-y-2">
-          <Label htmlFor="sender-name">Your name</Label>
-          <Input
-            id="sender-name"
-            placeholder="Your name"
-            value={senderName}
-            onChange={(e) => onSenderNameChange(e.target.value)}
-            maxLength={100}
-          />
-        </div>
 
-        {/* Sender Message */}
-        <div className="space-y-2">
-          <Label htmlFor="sender-message">Personal note</Label>
-          <Textarea
-            id="sender-message"
-            placeholder="A personal note to the recipient (e.g., 'With love from your friend')"
-            value={senderMessage}
-            onChange={(e) => onSenderMessageChange(e.target.value)}
-            rows={2}
-            maxLength={200}
-            className="resize-none"
-          />
-          <p className="text-xs text-muted-foreground text-right">
-            {senderMessage.length} / 200
+      {/* Sender Message */}
+      <div className="space-y-1.5">
+        <label htmlFor="sender-message" className="text-sm font-medium text-foreground">
+          Personal note
+        </label>
+        <Textarea
+          id="sender-message"
+          placeholder="e.g., With love from your friend..."
+          value={senderMessage}
+          onChange={(e) => onSenderMessageChange(e.target.value)}
+          rows={2}
+          maxLength={200}
+          className="resize-none"
+        />
+        <div className="flex justify-between items-center">
+          <p className="text-xs text-muted-foreground">
+            This appears at the bottom of your wish
+          </p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {senderMessage.length}/200
           </p>
         </div>
       </div>

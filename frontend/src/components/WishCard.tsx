@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { WishTheme } from "./ThemeSelector";
 import { CelebrationItem } from "./CelebrationItems";
-import { ThemeAnimations, CelebrationEffects } from "./animations";
+import { ThemeAnimations, CelebrationEffects, GiftImagePopup } from "./animations";
 import { 
   Heart, Sparkles, Star, PartyPopper, 
   Flower2, HeartHandshake, Award, Gift, Music, Calendar,
@@ -161,37 +161,18 @@ export function WishCard({
           </p>
         </div>
 
-        {/* Images with fade-in effect */}
+        {/* Images with animated popup gallery */}
         {images.length > 0 && (
           <div className={cn(
-            "grid gap-3 mb-6",
+            "mb-6",
             "transform transition-all duration-700 delay-500",
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-            images.length === 1 && "grid-cols-1",
-            images.length === 2 && "grid-cols-2",
-            images.length >= 3 && "grid-cols-2 md:grid-cols-3"
+            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}>
-            {images.map((src, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "relative rounded-xl overflow-hidden shadow-soft",
-                  "transform transition-all duration-500",
-                  "hover:scale-[1.02] hover:shadow-card",
-                  images.length === 1 ? "aspect-video" : "aspect-square"
-                )}
-                style={{ transitionDelay: `${600 + index * 100}ms` }}
-              >
-                <img
-                  src={src}
-                  alt={`Wish image ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                {/* Image shimmer effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-              </div>
-            ))}
+            <GiftImagePopup
+              images={images}
+              theme={theme}
+              isActive={entranceComplete}
+            />
           </div>
         )}
 

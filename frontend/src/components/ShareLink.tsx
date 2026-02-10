@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, Copy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QRCodeCard } from "@/components/QRCodeCard";
 import { cn } from "@/lib/utils";
 
 interface ShareLinkProps {
@@ -24,7 +25,7 @@ export function ShareLink({ url }: ShareLinkProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "A special wish for you! 💫",
+          title: "A special wish for you! ✨",
           text: "Someone made a wish for you",
           url: url,
         });
@@ -39,7 +40,7 @@ export function ShareLink({ url }: ShareLinkProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl">
         <div className="flex-1 truncate text-sm font-medium text-foreground">
           {url}
@@ -75,6 +76,14 @@ export function ShareLink({ url }: ShareLinkProps) {
           Share this wish
         </Button>
       )}
+
+      {/* QR Code */}
+      <div className="pt-2 border-t border-border">
+        <p className="text-center text-sm font-medium text-foreground mb-3">
+          Or scan QR code
+        </p>
+        <QRCodeCard url={url} />
+      </div>
 
       <p className="text-center text-muted-foreground text-sm">
         Share this link with your loved one 💫
