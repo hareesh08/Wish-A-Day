@@ -227,30 +227,41 @@ setup_app_directory() {
 setup_repository() {
     log_step "Setting up repository"
     
+    # Check if we're already in the repository directory
+    if [[ "$PWD" == *"Wish-A-Day"* ]] && [[ -d ".git" ]]; then
+        log_info "Already in repository directory, copying to $APP_DIR"
+        # Copy from current directory to APP_DIR
+        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' --exclude='__pycache__' --exclude='*.pyc' ./ "$APP_DIR/"
+        chown -R "$WISHADAY_USER:$WISHADAY_GROUP" "$APP_DIR"
+        log_success "Repository setup complete"
+        return 0
+    fi
+    
     cd "$APP_DIR"
     
     if [[ -d ".git" ]]; then
         log_info "Repository exists, updating..."
         sudo -u "$WISHADAY_USER" git pull
-    elif [[ -n "$GIT_REPO" ]]; then
-        log_info "Cloning repository from $GIT_REPO"
-        sudo -u "$WISHADAY_USER" git clone "$GIT_REPO" .
     elif [[ -n "$SOURCE_DIR" && -d "$SOURCE_DIR" ]]; then
         log_info "Copying code from local directory: $SOURCE_DIR"
         # Copy all files except .git directory
-        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' "$SOURCE_DIR/" "$APP_DIR/"
+        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' --exclude='__pycache__' --exclude='*.pyc' "$SOURCE_DIR/" "$APP_DIR/"
         log_info "Code copied from $SOURCE_DIR"
     elif [[ -d "/root/Wish-A-Day" ]]; then
         log_info "Copying code from default location: /root/Wish-A-Day/"
         # Copy all files except .git directory
-        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' "/root/Wish-A-Day/" "$APP_DIR/"
+        rsync -av --exclude='.git' --exclude='venv' --exclude='node_modules' --exclude='__pycache__' --exclude='*.pyc' "/root/Wish-A-Day/" "$APP_DIR/"
         log_info "Code copied from /root/Wish-A-Day/"
+    elif [[ -n "$GIT_REPO" ]]; then
+        log_info "Cloning repository from $GIT_REPO"
+        sudo -u "$WISHADAY_USER" git clone "$GIT_REPO" .
     else
         log_warn "No git repository or source directory found."
         log_info "Checked locations:"
-        log_info "  - Git repository (GIT_REPO environment variable)"
+        log_info "  - Current directory (if in Wish-A-Day repo)"
         log_info "  - Custom source directory (SOURCE_DIR environment variable)"
         log_info "  - Default location: /root/Wish-A-Day/"
+        log_info "  - Git repository (GIT_REPO environment variable)"
         log_info "Please ensure code is available in one of these locations."
     fi
     
