@@ -29,6 +29,7 @@
 #   fix-db      - Fix database issues
 #   fix-env     - Fix environment configuration
 #   fix-upload  - Fix image upload 500 errors
+#   fix-ssl     - Setup or renew SSL certificate
 #   logs        - Show recent logs
 #   test        - Test all endpoints
 #   update      - Update application from git
@@ -314,6 +315,8 @@ build_frontend() {
     # Install dependencies and build
     sudo -u "$WISHADAY_USER" bash -c "
         npm install
+        # Fix node_modules/.bin permissions
+        chmod -R +x node_modules/.bin 2>/dev/null || true
         npm run build
     "
     
@@ -723,6 +726,12 @@ fix_all_permissions() {
         find "$APP_DIR/frontend/dist" -type f -exec chmod 644 {} \;
     fi
     
+    # Node modules executable permissions
+    if [[ -d "$APP_DIR/frontend/node_modules/.bin" ]]; then
+        chmod -R +x "$APP_DIR/frontend/node_modules/.bin"
+        log_info "Fixed node_modules/.bin permissions"
+    fi
+    
     log_success "All permissions fixed"
 }
 
@@ -755,6 +764,8 @@ install_application() {
     init_database
     build_frontend
     fix_all_permissions
+    # Setup SSL if not already done
+    setup_ssl
     
     log_success "Application installed successfully!"
     log_info "Next step: sudo ./serverv2.sh configure"
@@ -2108,6 +2119,7 @@ show_help() {
     echo "  fix-db      - Fix database issues and permissions"
     echo "  fix-env     - Fix environment configuration"
     echo "  fix-upload  - Fix image upload 500 errors"
+    echo "  fix-ssl     - Setup or renew SSL certificate"
     echo "  update      - Update application from git"
     echo "  clearcache  - Clear caches and temp files (keeps venv/node_modules)"
     echo "  pullandrebuild - Pull latest code and rebuild only what changed"
@@ -2206,6 +2218,12 @@ main() {
         "fix-upload")
             check_root
             fix_image_upload_500
+            ;;
+        "fix-ssl")
+            check_root
+            log_header "Setting up SSL Certificate"
+            echo ""
+            setup_ssl
             ;;
         "logs")
             show_recent_logs
