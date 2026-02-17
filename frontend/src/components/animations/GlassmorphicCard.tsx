@@ -161,7 +161,7 @@ export function GlassmorphicCard({
   );
 }
 
-// Standalone aurora background component
+// Standalone aurora background component - OPTIMIZED
 interface AuroraBackgroundProps {
   theme: WishTheme;
   intensity?: "subtle" | "medium" | "strong";
@@ -171,43 +171,23 @@ export function AuroraBackground({ theme, intensity = "medium" }: AuroraBackgrou
   const glowColors = themeGlowColors[theme];
   
   const opacityMap = {
-    subtle: 0.3,
-    medium: 0.5,
-    strong: 0.7,
+    subtle: 0.15,
+    medium: 0.25,
+    strong: 0.4,
   };
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Primary aurora wave */}
+      {/* Primary aurora wave - single optimized layer */}
       <div 
-        className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 animate-aurora-wave-1"
+        className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2"
         style={{
           background: `
             radial-gradient(ellipse 80% 50% at 20% 40%, ${glowColors.primary} 0%, transparent 50%),
             radial-gradient(ellipse 60% 40% at 80% 60%, ${glowColors.secondary} 0%, transparent 50%)
           `,
           opacity: opacityMap[intensity],
-        }}
-      />
-
-      {/* Secondary aurora wave */}
-      <div 
-        className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 animate-aurora-wave-2"
-        style={{
-          background: `
-            radial-gradient(ellipse 70% 60% at 60% 30%, ${glowColors.secondary} 0%, transparent 50%),
-            radial-gradient(ellipse 50% 50% at 30% 70%, ${glowColors.primary} 0%, transparent 50%)
-          `,
-          opacity: opacityMap[intensity] * 0.7,
-        }}
-      />
-
-      {/* Shimmer overlay */}
-      <div 
-        className="absolute inset-0 animate-shimmer-slow"
-        style={{
-          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)",
-          backgroundSize: "200% 100%",
+          willChange: "opacity",
         }}
       />
     </div>

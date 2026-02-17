@@ -237,9 +237,11 @@ const WishView = () => {
         />
       )}
 
-      {/* Cinematic Theme Animation for all themes */}
+      {/* Cinematic Theme Animation for all themes - delayed start */}
       {giftBoxComplete && (
-        <CinematicThemeEffects theme={wish.theme as WishTheme} isActive={giftBoxComplete} />
+        <div className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <CinematicThemeEffects theme={wish.theme as WishTheme} isActive={giftBoxComplete} />
+        </div>
       )}
 
       {/* Enhanced theme background with animation */}
@@ -247,7 +249,7 @@ const WishView = () => {
       
       {/* Ambient theme particles - reduced count */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
             className="absolute animate-ambient-float"

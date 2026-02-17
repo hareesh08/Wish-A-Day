@@ -39,7 +39,7 @@ const THEME_COLORS: Record<WishTheme, string[]> = {
 
 const generateParticles = (count: number, colors: string[]): Particle[] => {
   const isMobile = window.innerWidth < 768;
-  const actualCount = isMobile ? Math.floor(count * 0.5) : count; // 50% fewer on mobile
+  const actualCount = isMobile ? Math.floor(count * 0.4) : Math.floor(count * 0.6); // 60% fewer for performance
   
   return Array.from({ length: actualCount }, (_, i) => ({
     id: i,

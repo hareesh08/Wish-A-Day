@@ -53,7 +53,7 @@ export const ConfettiCannon = ({ theme, trigger, onComplete }: ConfettiCannonPro
     const colors = themeColors[theme] || themeColors.default;
     const pieces: ConfettiPiece[] = [];
     const isMobile = window.innerWidth < 768;
-    const count = isMobile ? 15 : 25; // Reduced from 30
+    const count = isMobile ? 8 : 12; // Reduced from 15/25
     
     for (let i = 0; i < count; i++) {
       const spreadAngle = angle + (Math.random() - 0.5) * 60;

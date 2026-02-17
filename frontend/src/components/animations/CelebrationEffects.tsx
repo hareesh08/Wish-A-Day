@@ -165,7 +165,7 @@ const PopperEffect = ({ item }: { item: AnimatedItem }) => {
         />
         {popped && (
           <div className="popper-burst">
-            {Array.from({ length: 12 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <div 
                 key={i}
                 className="burst-particle animate-burst-fly"
@@ -246,7 +246,7 @@ const GiftEffect = ({ item }: { item: AnimatedItem }) => {
           {/* Sparkle particles when opened */}
           {opened && (
             <div className="absolute inset-0">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
                   className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-gift-sparkle"
